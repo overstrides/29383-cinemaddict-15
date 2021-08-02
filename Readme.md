@@ -1,7 +1,7 @@
 # Проект «Киноман»
 
-* Студент: [Oleksandr Shut](https://up.htmlacademy.ru/ecmascript/15/user/29383).
-* Наставник: `Неизвестно`.
+- Студент: [Oleksandr Shut](https://up.htmlacademy.ru/ecmascript/15/user/29383).
+- Наставник: [Сергей Рожков](https://htmlacademy.ru/profile/id1069033).
 
 ---
 
