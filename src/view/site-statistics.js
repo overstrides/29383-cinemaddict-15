@@ -1,4 +1,4 @@
-export const createSiteStatisticsTemplate = () => (
-  `<p>130 291 movies inside
+export const createSiteStatisticsTemplate = (filmsCards) => (
+  `<p>${filmsCards.length} movies inside
   </p>`
 );
