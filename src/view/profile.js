@@ -1,4 +1,6 @@
-export const createProfileTemplate = (filmsCards) => {
+import { createElement } from '../utils.js';
+
+const createProfileTemplate = (filmsCards) => {
   const getUserRating = () => {
     let userTitle = '';
     let userFilmsWatched = 0;
@@ -29,3 +31,26 @@ export const createProfileTemplate = (filmsCards) => {
     <img class="profile__avatar" src="images/bitmap@2x.png" alt="Avatar" width="35" height="35">
   </section>`;
 };
+
+export default class Profile {
+  constructor(filmsCards) {
+    this._filmsCards = filmsCards;
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createProfileTemplate(this._filmsCards);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

@@ -1,8 +1,29 @@
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
-// Функция из интернета по генерации случайного числа из диапазона
-// Источник - https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_random
+const RenderPosition = {
+  AFTERBEGIN: 'afterbegin',
+  BEFOREEND: 'beforeend',
+};
+
+const render = (container, element, place) => {
+  switch (place) {
+    case RenderPosition.AFTERBEGIN:
+      container.prepend(element);
+      break;
+    case RenderPosition.BEFOREEND:
+      container.append(element);
+      break;
+  }
+};
+
+const createElement = (template) => {
+  const newElement = document.createElement('div');
+  newElement.innerHTML = template;
+
+  return newElement.firstChild;
+};
+
 const getRandomFloat = (a = 1, b = 0) => {
   const lower = Math.min(a, b);
   const upper = Math.max(a, b);
@@ -58,4 +79,20 @@ const getRandomText = (text, min, max) => {
 
 const checkIfActive = (element, activeClass) => element ? activeClass : '';
 
-export { getRandomFloat, getRandomInt, humanizeDate, humanizeCommentDate, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive };
+const getFilmDetailsData = (filmCard, comments) => {
+  const { commentsId } = filmCard;
+
+  const filmComments = [];
+
+  commentsId.forEach((commentId) => {
+    comments.forEach((comment) => {
+      if (comment.id === commentId) {
+        filmComments.push(comment);
+      }
+    });
+  });
+
+  return [filmCard, filmComments];
+};
+
+export { RenderPosition, render, createElement, getRandomFloat, getRandomInt, humanizeDate, humanizeCommentDate, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive, getFilmDetailsData };

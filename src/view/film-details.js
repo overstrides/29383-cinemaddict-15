@@ -1,7 +1,7 @@
-import { checkIfActive } from '../utils.js';
+import { createElement, checkIfActive } from '../utils.js';
 import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS } from '../const.js';
 
-export const createFilmDetailsTemplate = (filmDetailsData) => {
+const createFilmDetailsTemplate = (filmDetailsData) => {
   const [filmDetailsCard, filmComments] = [filmDetailsData[0], filmDetailsData[1]];
 
   const { title, alternativeTitle, totalRating, poster, ageRating, directors, writers, actors, release, runtime, genres, description, userDetails } = filmDetailsCard;
@@ -140,3 +140,26 @@ export const createFilmDetailsTemplate = (filmDetailsData) => {
     </form>
   </section>`;
 };
+
+export default class FilmDetails {
+  constructor(filmDetailsData) {
+    this._filmDetailsData = filmDetailsData;
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createFilmDetailsTemplate(this._filmDetailsData);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

@@ -1,7 +1,7 @@
-import { truncateDescription, humanizeDate, checkIfActive } from '../utils.js';
+import { createElement, truncateDescription, humanizeDate, checkIfActive } from '../utils.js';
 import { FILM_CARD_CONTROLS_ACTIVE_CLASS, SHORT_DESCRIPTION_LENGTH } from '../const.js';
 
-export const createFilmCardTemplate = (filmCard = {}) => {
+const createFilmCardTemplate = (filmCard = {}) => {
   const { title, totalRating, poster, release, runtime, genres, description, userDetails, commentsId } = filmCard;
 
   const releaseYear = humanizeDate(release.date, 'YYYY');
@@ -25,3 +25,26 @@ export const createFilmCardTemplate = (filmCard = {}) => {
     </div>
   </article>`;
 };
+
+export default class FilmCard {
+  constructor(filmCard) {
+    this._filmCard = filmCard;
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createFilmCardTemplate(this._filmCard);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}
