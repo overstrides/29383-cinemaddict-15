@@ -52,20 +52,32 @@ const renderFilmCard = (filmCardsContainer, filmCard) => {
     bodyElement.classList.remove('hide-overflow');
   };
 
+  const onEscKeyDown = (evt) => {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      closeFilmDetails();
+      document.removeEventListener('keydown', onEscKeyDown);
+    }
+  };
+
   filmCardComponent.getElement().querySelector('.film-card__poster').addEventListener('click', () => {
     openFilmDetails();
+    document.addEventListener('keydown', onEscKeyDown);
   });
 
   filmCardComponent.getElement().querySelector('.film-card__title').addEventListener('click', () => {
     openFilmDetails();
+    document.addEventListener('keydown', onEscKeyDown);
   });
 
   filmCardComponent.getElement().querySelector('.film-card__comments').addEventListener('click', () => {
     openFilmDetails();
+    document.addEventListener('keydown', onEscKeyDown);
   });
 
   filmDetailsComponent.getElement().querySelector('.film-details__close-btn').addEventListener('click', () => {
     closeFilmDetails();
+    document.removeEventListener('keydown', onEscKeyDown);
   });
 
   render(filmCardsContainer, filmCardComponent.getElement(), RenderPosition.BEFOREEND);
@@ -73,10 +85,15 @@ const renderFilmCard = (filmCardsContainer, filmCard) => {
 
 const renderFilmsBoard = (container, cards) => {
   const filmsComponent = new FilmsView();
-  const filmsListComponent = new FilmsListView();
+  const isNotEmpty = Boolean(cards.length);
+  const filmsListComponent = new FilmsListView(isNotEmpty);
 
   render(container, filmsComponent.getElement(), RenderPosition.BEFOREEND);
   render(filmsComponent.getElement(), filmsListComponent.getElement(), RenderPosition.BEFOREEND);
+
+  if (!isNotEmpty) {
+    return;
+  }
 
   const filmsListContainerElement = filmsListComponent.getElement().querySelector('.films-list__container');
 

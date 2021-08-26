@@ -1,20 +1,26 @@
 import { createElement } from '../utils.js';
 
-const createFilmsListTemplate = () => (
-  `<section class="films-list">
-    <h2 class="films-list__title visually-hidden">All movies. Upcoming</h2>
-    <div class="films-list__container">
-    </div>
-  </section>`
-);
+const createFilmsListTemplate = (isNotEmpty = true) => {
+  const content = isNotEmpty
+    ? `<h2 class="films-list__title visually-hidden">All movies. Upcoming</h2>
+       <div class="films-list__container">
+       </div>`
+    : `<h2 class="films-list__title">There are no movies in our database
+       </h2>`;
+
+  return `<section class="films-list">
+    ${content}
+  </section>`;
+};
 
 export default class FilmsList {
-  constructor() {
+  constructor(isNotEmpty) {
     this._element = null;
+    this._isNotEmpty = isNotEmpty;
   }
 
   getTemplate() {
-    return createFilmsListTemplate();
+    return createFilmsListTemplate(this._isNotEmpty);
   }
 
   getElement() {
