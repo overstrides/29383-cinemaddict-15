@@ -1,4 +1,5 @@
-import { createElement, checkIfActive } from '../utils.js';
+import AbstractView from './abstract.js';
+import { checkIfActive } from '../utils/film.js';
 import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS } from '../const.js';
 
 const createFilmDetailsTemplate = (filmDetailsData) => {
@@ -141,25 +142,24 @@ const createFilmDetailsTemplate = (filmDetailsData) => {
   </section>`;
 };
 
-export default class FilmDetails {
+export default class FilmDetails extends AbstractView {
   constructor(filmDetailsData) {
+    super();
     this._filmDetailsData = filmDetailsData;
-    this._element = null;
+    this._closeHandler = this._closeHandler.bind(this);
+  }
+
+  _closeHandler(evt) {
+    evt.preventDefault();
+    this._callback.closeFilmDetails();
   }
 
   getTemplate() {
     return createFilmDetailsTemplate(this._filmDetailsData);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
+  setCloseFilmDetails(callback) {
+    this._callback.closeFilmDetails = callback;
+    this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closeHandler);
   }
 }

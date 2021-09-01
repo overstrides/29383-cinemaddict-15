@@ -1,40 +1,6 @@
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-
-const RenderPosition = {
-  AFTERBEGIN: 'afterbegin',
-  BEFOREEND: 'beforeend',
-};
-
-const render = (container, element, place) => {
-  switch (place) {
-    case RenderPosition.AFTERBEGIN:
-      container.prepend(element);
-      break;
-    case RenderPosition.BEFOREEND:
-      container.append(element);
-      break;
-  }
-};
-
-const createElement = (template) => {
-  const newElement = document.createElement('div');
-  newElement.innerHTML = template;
-
-  return newElement.firstChild;
-};
-
-const getRandomFloat = (a = 1, b = 0) => {
-  const lower = Math.min(a, b);
-  const upper = Math.max(a, b);
-  return (lower + Math.random() * (upper - lower)).toFixed(1);
-};
-
-const getRandomInt = (a = 1, b = 0) => {
-  const lower = Math.ceil(Math.min(a, b));
-  const upper = Math.floor(Math.max(a, b));
-  return Math.floor(lower + Math.random() * (upper - lower + 1));
-};
+import { getRandomInt } from './common.js';
 
 const humanizeDate = (date, format) => dayjs(date).format(format);
 
@@ -95,4 +61,4 @@ const getFilmDetailsData = (filmCard, comments) => {
   return [filmCard, filmComments];
 };
 
-export { RenderPosition, render, createElement, getRandomFloat, getRandomInt, humanizeDate, humanizeCommentDate, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive, getFilmDetailsData };
+export { humanizeDate, humanizeCommentDate, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive, getFilmDetailsData };
