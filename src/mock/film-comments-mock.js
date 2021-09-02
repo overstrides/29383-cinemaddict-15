@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import { TEXT_SOURCE, COMMENTS_EMOTIONS, COMMENTS_DATE_MAX_RANGE, COMMENTS_AUTHORS, MIN_STRINGS_COMMENT, MAX_STRINGS_COMMENT, MIN_COMMENTS_NUMBER, MAX_COMMENTS_NUMBER } from '../const.js';
-import { getRandomInt, getRandomEmotion, getRandomDate, humanizeCommentDate, getRandomAuthor, getRandomText } from '../utils.js';
+import { getRandomInt } from '../utils/common.js';
+import { getRandomEmotion, getRandomDate, humanizeCommentDate, getRandomAuthor, getRandomText } from '../utils/film.js';
 
 const generateFilmComment = () => ({
   id: nanoid(),

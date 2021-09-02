@@ -1,4 +1,5 @@
-import { createElement, truncateDescription, humanizeDate, checkIfActive } from '../utils.js';
+import AbstractView from './abstract.js';
+import { truncateDescription, humanizeDate, checkIfActive } from '../utils/film.js';
 import { FILM_CARD_CONTROLS_ACTIVE_CLASS, SHORT_DESCRIPTION_LENGTH } from '../const.js';
 
 const createFilmCardTemplate = (filmCard = {}) => {
@@ -26,25 +27,26 @@ const createFilmCardTemplate = (filmCard = {}) => {
   </article>`;
 };
 
-export default class FilmCard {
+export default class FilmCard extends AbstractView {
   constructor(filmCard) {
+    super();
     this._filmCard = filmCard;
-    this._element = null;
+    this._openHandler = this._openHandler.bind(this);
+  }
+
+  _openHandler(evt) {
+    evt.preventDefault();
+    this._callback.openFilmDetails();
   }
 
   getTemplate() {
     return createFilmCardTemplate(this._filmCard);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
+  setOpenFilmDetails(callback) {
+    this._callback.openFilmDetails = callback;
+    this.getElement().querySelector('.film-card__poster').addEventListener('click', this._openHandler);
+    this.getElement().querySelector('.film-card__title').addEventListener('click', this._openHandler);
+    this.getElement().querySelector('.film-card__comments').addEventListener('click', this._openHandler);
   }
 }

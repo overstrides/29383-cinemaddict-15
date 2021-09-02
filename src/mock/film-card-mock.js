@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import { MIN_STRINGS_DESCRIPTION, MAX_STRINGS_DESCRIPTION, MIN_FILM_RATING, MAX_FILM_RATING, TEXT_SOURCE, FILM_WATCH_MAX_RANGE } from '../const.js';
-import { getRandomFloat, getRandomInt, humanizeDate, getRandomText, getRandomDate } from '../utils.js';
+import { getRandomFloat, getRandomInt } from '../utils/common.js';
+import { humanizeDate, getRandomText, getRandomDate } from '../utils/film.js';
 
 const generateFilmCardData = () => {
   const filmCardData = [
