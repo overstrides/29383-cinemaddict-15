@@ -99,13 +99,13 @@ export default class Card {
     this._filmDetailsContainer.classList.add('hide-overflow');
     this._changeMode();
     this._mode = Mode.EDITING;
-  };
+  }
 
   _closeFilmDetails() {
     this._filmDetailsContainer.removeChild(this._filmDetailsComponent.getElement());
     this._filmDetailsContainer.classList.remove('hide-overflow');
     this._mode = Mode.DEFAULT;
-  };
+  }
 
   _escKeyDownHandler(evt) {
     if (evt.key === 'Escape' || evt.key === 'Esc') {
@@ -113,7 +113,7 @@ export default class Card {
       this._closeFilmDetails();
       document.removeEventListener('keydown', this._escKeyDownHandler);
     }
-  };
+  }
 
   _handleWatchlistClick() {
     this._changeData(

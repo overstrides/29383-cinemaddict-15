@@ -1,5 +1,5 @@
-import { FILMS_NUMBER, FILMS_STEP_NUMBER, FILMS_EXTRA_NUMBER, FILMS_TOP_RATED_TITLE, FILMS_MOST_COMMENTED_TITLE } from './const.js';
-import { RenderPosition, render, remove } from './utils/render.js';
+import { FILMS_NUMBER } from './const.js';
+import { render } from './utils/render.js';
 import ProfileView from './view/profile.js';
 import MenuView from './view/menu.js';
 import SiteStatisticsView from './view/site-statistics.js';

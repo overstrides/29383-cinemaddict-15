@@ -87,7 +87,7 @@ export default class Board {
       .slice(from, to)
       .forEach((filmCard) => {
         this._renderFilmCard(this._filmsListContainerElement, filmCard);
-      })
+      });
   }
 
   _clearTaskList() {
@@ -106,7 +106,7 @@ export default class Board {
   }
 
   _handleShowMoreButtonClick() {
-    this._renderFilmCards(this._renderedFilmsCardCount, this._renderedFilmsCardCount + FILMS_STEP_NUMBER)
+    this._renderFilmCards(this._renderedFilmsCardCount, this._renderedFilmsCardCount + FILMS_STEP_NUMBER);
     this._renderedFilmsCardCount += FILMS_STEP_NUMBER;
 
     if (this._renderedFilmsCardCount >= this._boardCards.length) {
