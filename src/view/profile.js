@@ -6,7 +6,7 @@ const createProfileTemplate = (filmsCards) => {
     let userFilmsWatched = 0;
 
     filmsCards.forEach((filmCard) => {
-      if (filmCard.userDetails.isWatched) {
+      if (filmCard.isWatched) {
         userFilmsWatched += 1;
       }
     });

@@ -124,12 +124,10 @@ export const generateFilmCard = (commentsId) => {
     runtime: getFilmDuration(filmCardData.runtime),
     genres: filmCardData.genres,
     description: getRandomText(TEXT_SOURCE, MIN_STRINGS_DESCRIPTION, MAX_STRINGS_DESCRIPTION),
-    userDetails: {
-      isInWatchlist: Boolean(getRandomInt(0, 1)),
-      isWatched: isWatchedFilm,
-      watchingDate: isWatchedFilm ? getRandomDate(FILM_WATCH_MAX_RANGE) : '',
-      isInFavorite: Boolean(getRandomInt(0, 1)),
-    },
+    isInWatchlist: Boolean(getRandomInt(0, 1)),
+    isWatched: isWatchedFilm,
+    watchingDate: isWatchedFilm ? getRandomDate(FILM_WATCH_MAX_RANGE) : '',
+    isInFavorite: Boolean(getRandomInt(0, 1)),
     commentsId: commentsId,
   };
 };

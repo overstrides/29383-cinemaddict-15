@@ -5,7 +5,7 @@ import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS } from '../const.js';
 const createFilmDetailsTemplate = (filmDetailsData) => {
   const [filmDetailsCard, filmComments] = [filmDetailsData[0], filmDetailsData[1]];
 
-  const { title, alternativeTitle, totalRating, poster, ageRating, directors, writers, actors, release, runtime, genres, description, userDetails } = filmDetailsCard;
+  const { title, alternativeTitle, totalRating, poster, ageRating, directors, writers, actors, release, runtime, genres, description, isInWatchlist, isWatched, isInFavorite } = filmDetailsCard;
 
   let filmGenresList = '';
   genres.slice().forEach((item) => {
@@ -93,9 +93,9 @@ const createFilmDetailsTemplate = (filmDetailsData) => {
         </div>
 
         <section class="film-details__controls">
-          <button type="button" class="film-details__control-button ${checkIfActive(userDetails.isInWatchlist, FILM_DETAILS_CONTROLS_ACTIVE_CLASS)}film-details__control-button--watchlist" id="watchlist" name="watchlist">Add to watchlist</button>
-          <button type="button" class="film-details__control-button ${checkIfActive(userDetails.isWatched, FILM_DETAILS_CONTROLS_ACTIVE_CLASS)}film-details__control-button--watched" id="watched" name="watched">Already watched</button>
-          <button type="button" class="film-details__control-button ${checkIfActive(userDetails.isInFavorite, FILM_DETAILS_CONTROLS_ACTIVE_CLASS)}film-details__control-button--favorite" id="favorite" name="favorite">Add to favorites</button>
+          <button type="button" class="film-details__control-button ${checkIfActive(isInWatchlist, FILM_DETAILS_CONTROLS_ACTIVE_CLASS)}film-details__control-button--watchlist" id="watchlist" name="watchlist">Add to watchlist</button>
+          <button type="button" class="film-details__control-button ${checkIfActive(isWatched, FILM_DETAILS_CONTROLS_ACTIVE_CLASS)}film-details__control-button--watched" id="watched" name="watched">Already watched</button>
+          <button type="button" class="film-details__control-button ${checkIfActive(isInFavorite, FILM_DETAILS_CONTROLS_ACTIVE_CLASS)}film-details__control-button--favorite" id="favorite" name="favorite">Add to favorites</button>
         </section>
       </div>
 
@@ -147,6 +147,9 @@ export default class FilmDetails extends AbstractView {
     super();
     this._filmDetailsData = filmDetailsData;
     this._closeHandler = this._closeHandler.bind(this);
+    this._clickWatchlistHandler = this._clickWatchlistHandler.bind(this);
+    this._clickWatchedHandler = this._clickWatchedHandler.bind(this);
+    this._clickFavoritesHandler = this._clickFavoritesHandler.bind(this);
   }
 
   _closeHandler(evt) {
@@ -161,5 +164,35 @@ export default class FilmDetails extends AbstractView {
   setCloseFilmDetails(callback) {
     this._callback.closeFilmDetails = callback;
     this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closeHandler);
+  }
+
+  _clickWatchlistHandler(evt) {
+    evt.preventDefault();
+    this._callback.clickWatchlist();
+  }
+
+  _clickWatchedHandler(evt) {
+    evt.preventDefault();
+    this._callback.clickWatched();
+  }
+
+  _clickFavoritesHandler(evt) {
+    evt.preventDefault();
+    this._callback.clickFavorites();
+  }
+
+  setWatchlistClickHandler(callback) {
+    this._callback.clickWatchlist = callback;
+    this.getElement().querySelector('.film-details__control-button--watchlist').addEventListener('click', this._clickWatchlistHandler);
+  }
+
+  setHistoryClickHandler(callback) {
+    this._callback.clickWatched = callback;
+    this.getElement().querySelector('.film-details__control-button--watched').addEventListener('click', this._clickWatchedHandler);
+  }
+
+  setFavoritesClickHandler(callback) {
+    this._callback.clickFavorites = callback;
+    this.getElement().querySelector('.film-details__control-button--favorite').addEventListener('click', this._clickFavoritesHandler);
   }
 }

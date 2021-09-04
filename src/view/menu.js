@@ -1,7 +1,7 @@
 import AbstractView from './abstract.js';
 
 const createMenuTemplate = (filmsCards) => {
-  const filmsInWatchlist = filmsCards.slice().filter((filmCard) => filmCard.userDetails.isInWatchlist);
+  const filmsInWatchlist = filmsCards.slice().filter((filmCard) => filmCard.isInWatchlist);
   const filmsGenreHistory = [];
   filmsCards.forEach((filmCard) => {
     filmCard.genres.forEach((genre) => {
@@ -10,7 +10,7 @@ const createMenuTemplate = (filmsCards) => {
       }
     });
   });
-  const filmsInFavorite = filmsCards.slice().filter((filmCard) => filmCard.userDetails.isInFavorite);
+  const filmsInFavorite = filmsCards.slice().filter((filmCard) => filmCard.isInFavorite);
 
   return `<nav class="main-navigation">
     <div class="main-navigation__items">
