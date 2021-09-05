@@ -61,4 +61,8 @@ const getFilmDetailsData = (filmCard, comments) => {
   return [filmCard, filmComments];
 };
 
-export { humanizeDate, humanizeCommentDate, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive, getFilmDetailsData };
+const sortByDate = (filmA, filmB) => dayjs(filmA.release.date) - dayjs(filmB.release.date);
+
+const sortByRating = (filmA, filmB) => filmB.totalRating - filmA.totalRating;
+
+export { humanizeDate, humanizeCommentDate, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive, getFilmDetailsData, sortByDate, sortByRating };

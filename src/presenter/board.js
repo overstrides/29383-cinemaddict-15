@@ -1,6 +1,7 @@
-import { FILMS_STEP_NUMBER, FILMS_EXTRA_NUMBER, FILMS_TOP_RATED_TITLE, FILMS_MOST_COMMENTED_TITLE } from '../const.js';
+import { FILMS_STEP_NUMBER, FILMS_EXTRA_NUMBER, FILMS_TOP_RATED_TITLE, FILMS_MOST_COMMENTED_TITLE, SortType } from '../const.js';
 import { RenderPosition, render, remove } from '../utils/render.js';
 import { updateItem } from '../utils/common.js';
+import { sortByDate, sortByRating } from '../utils/film.js';
 import SortView from '../view/sort.js';
 import FilmsView from '../view/films.js';
 import FilmsListView from '../view/films-list.js';
@@ -16,6 +17,7 @@ export default class Board {
     this._filmCardsPresenter = new Map();
     this._filmCardsTopRatedPresenter = new Map();
     this._filmCardsMostCommentedPresenter = new Map();
+    this._currentSortType = SortType.DEFAULT;
 
     this._sortComponent = new SortView();
     this._filmsComponent = new FilmsView();
@@ -24,10 +26,12 @@ export default class Board {
     this._handleFilmCardChange = this._handleFilmCardChange.bind(this);
     this._handleModeChange = this._handleModeChange.bind(this);
     this._handleShowMoreButtonClick = this._handleShowMoreButtonClick.bind(this);
+    this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
   }
 
   init(boardCards, filmsComments) {
     this._boardCards = boardCards.slice();
+    this._sourcedBoardCards = boardCards.slice();
     this._filmsComments = filmsComments.slice();
     this._isNotEmpty = Boolean(this._boardCards.length);
 
@@ -41,6 +45,7 @@ export default class Board {
 
   _handleFilmCardChange(updatedFilmCard) {
     this._boardCards = updateItem(this._boardCards, updatedFilmCard);
+    this._sourcedBoardCards = updateItem(this._sourcedBoardCards, updatedFilmCard);
     this._sortedFilmsCardsByRating = updateItem(this._sortedFilmsCardsByRating, updatedFilmCard);
     this._sortedFilmsCardsByComments = updateItem(this._sortedFilmsCardsByComments, updatedFilmCard);
 
@@ -61,8 +66,53 @@ export default class Board {
     this._filmCardsMostCommentedPresenter.forEach((presenter) => presenter.resetView());
   }
 
+  _sortFilms(sortType) {
+    this._addSortClass(sortType);
+
+    switch (sortType) {
+      case SortType.DATE:
+        this._boardCards.sort(sortByDate);
+        break;
+      case SortType.RATING:
+        this._boardCards.sort(sortByRating);
+        break;
+      default:
+        this._boardCards = this._sourcedBoardCards.slice();
+    }
+
+    this._currentSortType = sortType;
+  }
+
+  _addSortClass(sortType) {
+    this._sortComponent.getElement().querySelectorAll('[data-sort-type]').forEach((a) => {
+      a.classList.remove('sort__button--active');
+    });
+
+    switch (sortType) {
+      case SortType.DATE:
+        this._sortComponent.getElement().querySelector('[data-sort-type="date"]').classList.add('sort__button--active');
+        break;
+      case SortType.RATING:
+        this._sortComponent.getElement().querySelector('[data-sort-type="rating"]').classList.add('sort__button--active');
+        break;
+      default:
+        this._sortComponent.getElement().querySelector('[data-sort-type="default"]').classList.add('sort__button--active');
+    }
+  }
+
+  _handleSortTypeChange(sortType) {
+    if (this._currentSortType === sortType) {
+      return;
+    }
+
+    this._sortFilms(sortType);
+    this._clearCardList();
+    this._renderCardList();
+  }
+
   _renderSort() {
-    render(this._filmsComponent, new SortView(), RenderPosition.AFTERBEGIN);
+    render(this._filmsComponent, this._sortComponent, RenderPosition.AFTERBEGIN);
+    this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
   }
 
   _renderFilmCard(filmCardsContainer, filmCard) {
@@ -90,7 +140,7 @@ export default class Board {
       });
   }
 
-  _clearTaskList() {
+  _clearCardList() {
     this._filmCardsPresenter.forEach((presenter) => presenter.destroy());
     this._filmCardsPresenter.clear();
     this._renderedFilmsCardCount = FILMS_STEP_NUMBER;
