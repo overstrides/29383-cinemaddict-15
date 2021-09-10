@@ -1,11 +1,15 @@
-import AbstractView from './abstract.js';
-import { checkIfActive } from '../utils/film.js';
-import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS } from '../const.js';
+import SmartView from './smart.js';
+import { nanoid } from 'nanoid';
+import { checkIfActive, getRandomAuthor, getDate } from '../utils/film.js';
+import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS, COMMENTS_AUTHORS } from '../const.js';
 
-const createFilmDetailsTemplate = (filmDetailsData) => {
-  const [filmDetailsCard, filmComments] = [filmDetailsData[0], filmDetailsData[1]];
+const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
 
-  const { title, alternativeTitle, totalRating, poster, ageRating, directors, writers, actors, release, runtime, genres, description, isInWatchlist, isWatched, isInFavorite } = filmDetailsCard;
+  const { title, alternativeTitle, totalRating, poster, ageRating, directors, writers, actors, release, runtime, genres, description, isInWatchlist, isWatched, isInFavorite, commentEmotion, commentText } = filmDetailsCard;
+
+  const commentImage = commentEmotion ? `<img src=${commentEmotion} alt=${commentEmotion} width="70" height="70">` : '';
+
+  const commentMessage = commentText ? commentText : '';
 
   let filmGenresList = '';
   genres.slice().forEach((item) => {
@@ -108,10 +112,10 @@ const createFilmDetailsTemplate = (filmDetailsData) => {
           </ul>
 
           <div class="film-details__new-comment">
-            <div class="film-details__add-emoji-label"></div>
+            <div class="film-details__add-emoji-label">${commentImage}</div>
 
             <label class="film-details__comment-label">
-              <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
+              <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${commentMessage}</textarea>
             </label>
 
             <div class="film-details__emoji-list">
@@ -142,14 +146,27 @@ const createFilmDetailsTemplate = (filmDetailsData) => {
   </section>`;
 };
 
-export default class FilmDetails extends AbstractView {
+export default class FilmDetails extends SmartView {
   constructor(filmDetailsData) {
     super();
     this._filmDetailsData = filmDetailsData;
+    this._filmDetails = FilmDetails.parseFilmDetailsToData(this._filmDetailsData[0]);
+    this._filmComments = this._filmDetailsData[1];
     this._closeHandler = this._closeHandler.bind(this);
     this._clickWatchlistHandler = this._clickWatchlistHandler.bind(this);
     this._clickWatchedHandler = this._clickWatchedHandler.bind(this);
     this._clickFavoritesHandler = this._clickFavoritesHandler.bind(this);
+    this._emotionInputHandler = this._emotionInputHandler.bind(this);
+    this._textCommentHandler = this._textCommentHandler.bind(this);
+    this._enterKeyDownHandler = this._enterKeyDownHandler.bind(this);
+    this._scrollHandler = this._scrollHandler.bind(this);
+    this._commentEmotion = this._filmDetails.commentEmotion;
+    this._commentText = this._filmDetails.commentText;
+    this._setInnerHandlers();
+  }
+
+  getTemplate() {
+    return createFilmDetailsTemplate(this._filmDetails, this._filmComments);
   }
 
   _closeHandler(evt) {
@@ -157,28 +174,50 @@ export default class FilmDetails extends AbstractView {
     this._callback.closeFilmDetails();
   }
 
-  getTemplate() {
-    return createFilmDetailsTemplate(this._filmDetailsData);
+  _clickWatchlistHandler(evt) {
+    evt.preventDefault();
+    this._callback.clickWatchlist(this._scrollPosition);
+  }
+
+  _clickWatchedHandler(evt) {
+    evt.preventDefault();
+    this._callback.clickWatched(this._scrollPosition);
+  }
+
+  _clickFavoritesHandler(evt) {
+    evt.preventDefault();
+    this._callback.clickFavorites(this._scrollPosition);
+  }
+
+  _scrollHandler(evt) {
+    evt.preventDefault();
+    this._scrollPosition = this.getElement().scrollTop;
+  }
+
+  _enterKeyDownHandler(evt) {
+    if (evt.ctrlKey && evt.key === 'Enter') {
+      evt.preventDefault();
+
+      if (this._commentText !== '' && this._commentEmotion !== '') {
+        this._newFilmComment = {
+          id: nanoid(),
+          emotion: this._commentEmotion,
+          date: getDate(),
+          author: getRandomAuthor(COMMENTS_AUTHORS),
+          text: this._commentText,
+        };
+        this._filmDetails.commentsId.push(this._newFilmComment.id);
+        this._callback.addNewComment(this._scrollPosition, FilmDetails.parseDataToFilmDetails(this._filmDetails), this._newFilmComment);
+      }
+    } else if (evt.key === 'Enter') {
+      evt.preventDefault();
+      this.getElement().querySelector('.film-details__new-comment').addEventListener('keydown', this._enterKeyDownHandler);
+    }
   }
 
   setCloseFilmDetails(callback) {
     this._callback.closeFilmDetails = callback;
     this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closeHandler);
-  }
-
-  _clickWatchlistHandler(evt) {
-    evt.preventDefault();
-    this._callback.clickWatchlist();
-  }
-
-  _clickWatchedHandler(evt) {
-    evt.preventDefault();
-    this._callback.clickWatched();
-  }
-
-  _clickFavoritesHandler(evt) {
-    evt.preventDefault();
-    this._callback.clickFavorites();
   }
 
   setWatchlistClickHandler(callback) {
@@ -194,5 +233,114 @@ export default class FilmDetails extends AbstractView {
   setFavoritesClickHandler(callback) {
     this._callback.clickFavorites = callback;
     this.getElement().querySelector('.film-details__control-button--favorite').addEventListener('click', this._clickFavoritesHandler);
+  }
+
+  setScrollPosition(position) {
+    this.getElement().scroll(0, position);
+  }
+
+  setNewCommentHandler(callback) {
+    this._callback.addNewComment = callback;
+    this.getElement().querySelector('.film-details__new-comment').addEventListener('keydown', this._enterKeyDownHandler);
+  }
+
+  _emotionInputHandler(evt) {
+    evt.preventDefault();
+
+    if (evt.target.tagName !== 'IMG') {
+      return;
+    }
+
+    const emojiLabel = evt.target.parentElement.htmlFor;
+    const emojiInputId = `#${emojiLabel}`;
+    const emojiInputElement = this.getElement().querySelector(emojiInputId);
+    const emojiName = emojiInputElement.value;
+
+    this._commentEmotion = `./images/emoji/${emojiName}.png`;
+
+    this.updateData({
+      commentEmotion: this._commentEmotion,
+    });
+
+    this.setScrollPosition(this._scrollPosition);
+  }
+
+  _textCommentHandler(evt) {
+    evt.preventDefault();
+    this._commentText = evt.target.value;
+
+    this.updateData({
+      commentText: this._commentText,
+    }, true);
+  }
+
+  getFilmDetailsData() {
+    return this._filmDetails;
+  }
+
+  getFilmDetails() {
+    return FilmDetails.parseDataToFilmDetails(this._filmDetails);
+  }
+
+  restoreHandlers() {
+    this._setInnerHandlers();
+  }
+
+  reset(film) {
+    this._filmDetailsData = [];
+    this._filmDetailsData.push(FilmDetails.parseDataToFilmDetails(film));
+    this._filmDetailsData.push(this._filmComments);
+    this.updateData(
+      this._filmDetails,
+    );
+  }
+
+  _setInnerHandlers() {
+    this.getElement()
+      .querySelector('.film-details__close-btn')
+      .addEventListener('click', this._closeHandler);
+    this.getElement()
+      .querySelector('.film-details__control-button--watchlist')
+      .addEventListener('click', this._clickWatchlistHandler);
+    this.getElement()
+      .querySelector('.film-details__control-button--watched')
+      .addEventListener('click', this._clickWatchedHandler);
+    this.getElement()
+      .querySelector('.film-details__control-button--favorite')
+      .addEventListener('click', this._clickFavoritesHandler);
+    this.getElement().addEventListener('scroll', this._scrollHandler);
+    this.getElement()
+      .querySelector('.film-details__emoji-list')
+      .addEventListener('click', this._emotionInputHandler);
+    this.getElement()
+      .querySelector('.film-details__comment-input')
+      .addEventListener('input', this._textCommentHandler);
+    this.getElement()
+      .querySelector('.film-details__new-comment')
+      .addEventListener('keydown', this._enterKeyDownHandler);
+  }
+
+  static parseFilmDetailsToData(film) {
+    let filmDetails = film;
+
+    filmDetails = Object.assign(
+      {},
+      filmDetails,
+      {
+        commentEmotion: filmDetails.commentEmotion ? filmDetails.commentEmotion : '',
+        commentText: filmDetails.commentText ? filmDetails.commentText : '',
+      },
+    );
+
+    return filmDetails;
+  }
+
+  static parseDataToFilmDetails(film) {
+    const filmDetails = film;
+
+    delete filmDetails.commentEmotion;
+    delete filmDetails.commentText;
+
+    return filmDetails;
   }
 }
