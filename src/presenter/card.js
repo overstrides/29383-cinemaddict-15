@@ -10,11 +10,12 @@ const Mode = {
 };
 
 export default class Card {
-  constructor(filmDetailsContainer, filmsComments, changeData, changeMode) {
+  constructor(filmDetailsContainer, filmsComments, changeData, changeMode, updateComments) {
     this._filmDetailsContainer = filmDetailsContainer;
     this._filmsComments = filmsComments;
     this._changeData = changeData;
     this._changeMode = changeMode;
+    this._updateComments = updateComments;
     this._filmCardComponent = null;
     this._filmDetailsComponent = null;
     this._mode = Mode.DEFAULT;
@@ -25,9 +26,10 @@ export default class Card {
     this._handleWatchlistClick = this._handleWatchlistClick.bind(this);
     this._handleHistoryClick = this._handleHistoryClick.bind(this);
     this._handleFavoritesClick = this._handleFavoritesClick.bind(this);
+    this._handleAddedComment = this._handleAddedComment.bind(this);
   }
 
-  init(filmContainer, filmCard) {
+  init(filmContainer, filmCard, filmsComments = this._filmsComments) {
     this._filmContainer = filmContainer;
     this._filmCard = filmCard;
 
@@ -35,18 +37,18 @@ export default class Card {
     const prevFilmDetailsComponent = this._filmDetailsComponent;
 
     this._filmCardComponent = new FilmCardView(this._filmCard);
-    const filmDetailsCard = getFilmDetailsData(this._filmCard, this._filmsComments);
-    this._filmDetailsComponent = new FilmDetailsView(filmDetailsCard);
+    this._filmDetailsCard = getFilmDetailsData(this._filmCard, filmsComments);
+    this._filmDetailsComponent = new FilmDetailsView(this._filmDetailsCard);
 
     this._filmCardComponent.setOpenFilmDetails(this._clickOpenFilmDetails);
     this._filmCardComponent.setWatchlistClickHandler(this._handleWatchlistClick);
     this._filmCardComponent.setHistoryClickHandler(this._handleHistoryClick);
     this._filmCardComponent.setFavoritesClickHandler(this._handleFavoritesClick);
-
     this._filmDetailsComponent.setCloseFilmDetails(this._clickCloseFilmDetails);
     this._filmDetailsComponent.setWatchlistClickHandler(this._handleWatchlistClick);
     this._filmDetailsComponent.setHistoryClickHandler(this._handleHistoryClick);
     this._filmDetailsComponent.setFavoritesClickHandler(this._handleFavoritesClick);
+    this._filmDetailsComponent.setNewCommentHandler(this._handleAddedComment);
 
     if (prevFilmCardComponent === null || prevFilmDetailsComponent === null) {
       render(this._filmContainer, this._filmCardComponent);
@@ -102,9 +104,12 @@ export default class Card {
   }
 
   _closeFilmDetails() {
+    this._filmCard = this._filmDetailsComponent.getFilmDetails();
+    this._filmDetailsComponent.reset(this._filmDetailsCard);
     this._filmDetailsContainer.removeChild(this._filmDetailsComponent.getElement());
     this._filmDetailsContainer.classList.remove('hide-overflow');
     this._mode = Mode.DEFAULT;
+    this._updateComments();
   }
 
   _escKeyDownHandler(evt) {
@@ -115,7 +120,10 @@ export default class Card {
     }
   }
 
-  _handleWatchlistClick() {
+  _handleWatchlistClick(position = null) {
+    if (this._mode === Mode.EDITING) {
+      this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
+    }
     this._changeData(
       Object.assign(
         {},
@@ -125,9 +133,15 @@ export default class Card {
         },
       ),
     );
+    if (position !== null) {
+      this._filmDetailsComponent.setScrollPosition(position);
+    }
   }
 
-  _handleHistoryClick() {
+  _handleHistoryClick(position = null) {
+    if (this._mode === Mode.EDITING) {
+      this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
+    }
     this._changeData(
       Object.assign(
         {},
@@ -137,9 +151,15 @@ export default class Card {
         },
       ),
     );
+    if (position !== null) {
+      this._filmDetailsComponent.setScrollPosition(position);
+    }
   }
 
-  _handleFavoritesClick() {
+  _handleFavoritesClick(position = null) {
+    if (this._mode === Mode.EDITING) {
+      this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
+    }
     this._changeData(
       Object.assign(
         {},
@@ -149,5 +169,18 @@ export default class Card {
         },
       ),
     );
+    if (position !== null) {
+      this._filmDetailsComponent.setScrollPosition(position);
+    }
+  }
+
+  _handleAddedComment(position = null, film, comment) {
+    if (this._mode === Mode.EDITING) {
+      this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
+    }
+    this._changeData(film, comment);
+    if (position !== null) {
+      this._filmDetailsComponent.setScrollPosition(position);
+    }
   }
 }

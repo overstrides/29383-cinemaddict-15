@@ -65,4 +65,11 @@ const sortByDate = (filmA, filmB) => dayjs(filmA.release.date) - dayjs(filmB.rel
 
 const sortByRating = (filmA, filmB) => filmB.totalRating - filmA.totalRating;
 
-export { humanizeDate, humanizeCommentDate, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive, getFilmDetailsData, sortByDate, sortByRating };
+const getDate = () => {
+  dayjs.extend(relativeTime);
+  const date = dayjs().toDate();
+
+  return dayjs(date).fromNow();
+};
+
+export { humanizeDate, humanizeCommentDate, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive, getFilmDetailsData, sortByDate, sortByRating, getDate };

@@ -18,6 +18,7 @@ export default class Board {
     this._filmCardsTopRatedPresenter = new Map();
     this._filmCardsMostCommentedPresenter = new Map();
     this._currentSortType = SortType.DEFAULT;
+    this._isCommentUpdated = false;
 
     this._sortComponent = new SortView();
     this._filmsComponent = new FilmsView();
@@ -27,6 +28,7 @@ export default class Board {
     this._handleModeChange = this._handleModeChange.bind(this);
     this._handleShowMoreButtonClick = this._handleShowMoreButtonClick.bind(this);
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
+    this._updateMostCommentedComponent = this._updateMostCommentedComponent.bind(this);
   }
 
   init(boardCards, filmsComments) {
@@ -43,21 +45,34 @@ export default class Board {
     this._renderBoard();
   }
 
-  _handleFilmCardChange(updatedFilmCard) {
+  _handleFilmCardChange(updatedFilmCard, updatedComment = null) {
     this._boardCards = updateItem(this._boardCards, updatedFilmCard);
     this._sourcedBoardCards = updateItem(this._sourcedBoardCards, updatedFilmCard);
     this._sortedFilmsCardsByRating = updateItem(this._sortedFilmsCardsByRating, updatedFilmCard);
     this._sortedFilmsCardsByComments = updateItem(this._sortedFilmsCardsByComments, updatedFilmCard);
 
-    if(this._filmCardsPresenter.has(updatedFilmCard.id)) {
-      this._filmCardsPresenter.get(updatedFilmCard.id).init(this._filmsListContainerElement, updatedFilmCard);
+    if (updatedComment !== null) {
+      this._filmsComments.push(updatedComment);
+      this._isCommentUpdated = true;
     }
-    if(this._filmCardsTopRatedPresenter.has(updatedFilmCard.id)) {
-      this._filmCardsTopRatedPresenter.get(updatedFilmCard.id).init(this._filmsTopRatedContainerElement, updatedFilmCard);
+
+    if (this._filmCardsPresenter.has(updatedFilmCard.id)) {
+      this._filmCardsPresenter.get(updatedFilmCard.id).init(this._filmsListContainerElement, updatedFilmCard, this._filmsComments);
     }
-    if(this._filmCardsMostCommentedPresenter.has(updatedFilmCard.id)) {
-      this._filmCardsMostCommentedPresenter.get(updatedFilmCard.id).init(this._filmsMostCommentedContainerElement, updatedFilmCard);
+    if (this._filmCardsTopRatedPresenter.has(updatedFilmCard.id)) {
+      this._filmCardsTopRatedPresenter.get(updatedFilmCard.id).init(this._filmsTopRatedContainerElement, updatedFilmCard, this._filmsComments);
     }
+    if (this._filmCardsMostCommentedPresenter.has(updatedFilmCard.id)) {
+      this._filmCardsMostCommentedPresenter.get(updatedFilmCard.id).init(this._filmsMostCommentedContainerElement, updatedFilmCard, this._filmsComments);
+    }
+  }
+
+  _updateMostCommentedComponent() {
+    if (this._isCommentUpdated) {
+      this._clearMostCommentedList();
+      this._getFilmsMostCommented();
+    }
+    this._isCommentUpdated = false;
   }
 
   _handleModeChange() {
@@ -116,10 +131,10 @@ export default class Board {
   }
 
   _renderFilmCard(filmCardsContainer, filmCard) {
-    const cardPresenter = new CardPresenter(this._boardContainer, this._filmsComments, this._handleFilmCardChange, this._handleModeChange);
+    const cardPresenter = new CardPresenter(this._boardContainer, this._filmsComments, this._handleFilmCardChange, this._handleModeChange, this._updateMostCommentedComponent);
     cardPresenter.init(filmCardsContainer, filmCard);
 
-    switch(filmCardsContainer) {
+    switch (filmCardsContainer) {
       case this._filmsListContainerElement:
         this._filmCardsPresenter.set(filmCard.id, cardPresenter);
         break;
@@ -145,6 +160,11 @@ export default class Board {
     this._filmCardsPresenter.clear();
     this._renderedFilmsCardCount = FILMS_STEP_NUMBER;
     remove(this._showMoreComponent);
+  }
+
+  _clearMostCommentedList() {
+    this._filmCardsMostCommentedPresenter.forEach((presenter) => presenter.destroy());
+    this._filmCardsMostCommentedPresenter.clear();
   }
 
   _renderCardList() {
@@ -184,11 +204,7 @@ export default class Board {
       });
   }
 
-  _renderfilmsMostCommented() {
-    render(this._filmsComponent, new FilmsListExtraView(FILMS_MOST_COMMENTED_TITLE));
-    const filmsMostCommentedElement = this._filmsComponent.getElement().querySelectorAll('.films-list--extra')[1];
-    this._filmsMostCommentedContainerElement = filmsMostCommentedElement.querySelector('.films-list__container');
-
+  _getFilmsMostCommented() {
     this._sortedFilmsCardsByComments = this._boardCards.slice().sort((a, b) => b.commentsId.length - a.commentsId.length);
 
     this._sortedFilmsCardsByComments
@@ -196,6 +212,14 @@ export default class Board {
       .forEach((sortedCard) => {
         this._renderFilmCard(this._filmsMostCommentedContainerElement, sortedCard);
       });
+  }
+
+  _renderfilmsMostCommented() {
+    render(this._filmsComponent, new FilmsListExtraView(FILMS_MOST_COMMENTED_TITLE));
+    const filmsMostCommentedElement = this._filmsComponent.getElement().querySelectorAll('.films-list--extra')[1];
+    this._filmsMostCommentedContainerElement = filmsMostCommentedElement.querySelector('.films-list__container');
+
+    this._getFilmsMostCommented();
   }
 
   _renderBoard() {
