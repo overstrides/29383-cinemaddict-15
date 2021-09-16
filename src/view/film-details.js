@@ -1,5 +1,6 @@
 import SmartView from './smart.js';
 import { nanoid } from 'nanoid';
+import he from 'he';
 import { checkIfActive, getRandomAuthor, getDate } from '../utils/film.js';
 import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS, COMMENTS_AUTHORS } from '../const.js';
 
@@ -19,7 +20,7 @@ const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
 
   let filmCommentsList = '';
   filmComments.slice().forEach((item) => {
-    filmCommentsList += `<li class="film-details__comment">
+    filmCommentsList += `<li class="film-details__comment" id=${item.id}>
       <span class="film-details__comment-emoji">
         <img src=${item.emotion} width="55" height="55" alt="emoji-smile">
       </span>
@@ -115,7 +116,7 @@ const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
             <div class="film-details__add-emoji-label">${commentImage}</div>
 
             <label class="film-details__comment-label">
-              <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${commentMessage}</textarea>
+              <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${he.encode(commentMessage)}</textarea>
             </label>
 
             <div class="film-details__emoji-list">
@@ -159,6 +160,7 @@ export default class FilmDetails extends SmartView {
     this._emotionInputHandler = this._emotionInputHandler.bind(this);
     this._textCommentHandler = this._textCommentHandler.bind(this);
     this._enterKeyDownHandler = this._enterKeyDownHandler.bind(this);
+    this._clickDeleteHandler = this._clickDeleteHandler.bind(this);
     this._scrollHandler = this._scrollHandler.bind(this);
     this._commentEmotion = this._filmDetails.commentEmotion;
     this._commentText = this._filmDetails.commentText;
@@ -215,6 +217,31 @@ export default class FilmDetails extends SmartView {
     }
   }
 
+  _clickDeleteHandler(evt) {
+    if (evt.target.tagName !== 'BUTTON') {
+      return;
+    }
+
+    evt.preventDefault();
+
+    const comment = evt.target.closest('.film-details__comment');
+    const id = comment.id;
+    comment.remove();
+
+    const index = this._filmDetails.commentsId.findIndex((commentId) => commentId.toString() === id.toString());
+
+    if (index === -1) {
+      throw new Error('Can\'t delete unexisting commentsId');
+    }
+
+    this._filmDetails.commentsId = [
+      ...this._filmDetails.commentsId.slice(0, index),
+      ...this._filmDetails.commentsId.slice(index + 1),
+    ];
+
+    this._callback.deleteComment(this._scrollPosition, FilmDetails.parseDataToFilmDetails(this._filmDetails), id);
+  }
+
   setCloseFilmDetails(callback) {
     this._callback.closeFilmDetails = callback;
     this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closeHandler);
@@ -242,6 +269,14 @@ export default class FilmDetails extends SmartView {
   setNewCommentHandler(callback) {
     this._callback.addNewComment = callback;
     this.getElement().querySelector('.film-details__new-comment').addEventListener('keydown', this._enterKeyDownHandler);
+  }
+
+  setDeleteCommentHandler(callback) {
+    this._callback.deleteComment = callback;
+    this._commentList = this.getElement().querySelectorAll('.film-details__comment');
+    this._commentList.forEach((comment) => {
+      comment.addEventListener('click', this._clickDeleteHandler);
+    });
   }
 
   _emotionInputHandler(evt) {
@@ -318,6 +353,10 @@ export default class FilmDetails extends SmartView {
     this.getElement()
       .querySelector('.film-details__new-comment')
       .addEventListener('keydown', this._enterKeyDownHandler);
+    this._commentList = this.getElement().querySelectorAll('.film-details__comment');
+    this._commentList.forEach((comment) => {
+      comment.addEventListener('click', this._clickDeleteHandler);
+    });
   }
 
   static parseFilmDetailsToData(film) {
