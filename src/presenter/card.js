@@ -1,3 +1,4 @@
+import { UserAction, UpdateType, FilterType } from '../const.js';
 import { render, replace, remove } from '../utils/render.js';
 import { getFilmDetailsData } from '../utils/film.js';
 import Abstract from '../view/abstract.js';
@@ -10,12 +11,13 @@ const Mode = {
 };
 
 export default class Card {
-  constructor(filmDetailsContainer, filmsComments, changeData, changeMode, updateComments) {
+  constructor(filmDetailsContainer, filmsComments, changeData, changeMode, updateComments, updateFilteredFilmList) {
     this._filmDetailsContainer = filmDetailsContainer;
     this._filmsComments = filmsComments;
     this._changeData = changeData;
     this._changeMode = changeMode;
     this._updateComments = updateComments;
+    this._updateFilteredFilmList = updateFilteredFilmList;
     this._filmCardComponent = null;
     this._filmDetailsComponent = null;
     this._mode = Mode.DEFAULT;
@@ -27,6 +29,7 @@ export default class Card {
     this._handleHistoryClick = this._handleHistoryClick.bind(this);
     this._handleFavoritesClick = this._handleFavoritesClick.bind(this);
     this._handleAddedComment = this._handleAddedComment.bind(this);
+    this._handleDeletedComment = this._handleDeletedComment.bind(this);
   }
 
   init(filmContainer, filmCard, filmsComments = this._filmsComments) {
@@ -49,6 +52,7 @@ export default class Card {
     this._filmDetailsComponent.setHistoryClickHandler(this._handleHistoryClick);
     this._filmDetailsComponent.setFavoritesClickHandler(this._handleFavoritesClick);
     this._filmDetailsComponent.setNewCommentHandler(this._handleAddedComment);
+    this._filmDetailsComponent.setDeleteCommentHandler(this._handleDeletedComment);
 
     if (prevFilmCardComponent === null || prevFilmDetailsComponent === null) {
       render(this._filmContainer, this._filmCardComponent);
@@ -110,6 +114,7 @@ export default class Card {
     this._filmDetailsContainer.classList.remove('hide-overflow');
     this._mode = Mode.DEFAULT;
     this._updateComments();
+    this._updateFilteredFilmList();
   }
 
   _escKeyDownHandler(evt) {
@@ -125,6 +130,8 @@ export default class Card {
       this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
     }
     this._changeData(
+      UserAction.UPDATE_FILM_CARD,
+      UpdateType.PATCH,
       Object.assign(
         {},
         this._filmCard,
@@ -132,6 +139,9 @@ export default class Card {
           isInWatchlist: !this._filmCard.isInWatchlist,
         },
       ),
+      null,
+      this._mode,
+      FilterType.WATCHLIST,
     );
     if (position !== null) {
       this._filmDetailsComponent.setScrollPosition(position);
@@ -143,6 +153,8 @@ export default class Card {
       this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
     }
     this._changeData(
+      UserAction.UPDATE_FILM_CARD,
+      UpdateType.PATCH,
       Object.assign(
         {},
         this._filmCard,
@@ -150,6 +162,9 @@ export default class Card {
           isWatched: !this._filmCard.isWatched,
         },
       ),
+      null,
+      this._mode,
+      FilterType.HISTORY,
     );
     if (position !== null) {
       this._filmDetailsComponent.setScrollPosition(position);
@@ -161,6 +176,8 @@ export default class Card {
       this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
     }
     this._changeData(
+      UserAction.UPDATE_FILM_CARD,
+      UpdateType.PATCH,
       Object.assign(
         {},
         this._filmCard,
@@ -168,6 +185,9 @@ export default class Card {
           isInFavorite: !this._filmCard.isInFavorite,
         },
       ),
+      null,
+      this._mode,
+      FilterType.FAVORITES,
     );
     if (position !== null) {
       this._filmDetailsComponent.setScrollPosition(position);
@@ -178,7 +198,17 @@ export default class Card {
     if (this._mode === Mode.EDITING) {
       this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
     }
-    this._changeData(film, comment);
+    this._changeData(UserAction.ADD_COMMENT, UpdateType.MINOR, film, comment, this._mode);
+    if (position !== null) {
+      this._filmDetailsComponent.setScrollPosition(position);
+    }
+  }
+
+  _handleDeletedComment(position = null, film, comment) {
+    if (this._mode === Mode.EDITING) {
+      this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
+    }
+    this._changeData(UserAction.DELETE_COMMENT, UpdateType.MINOR, film, comment, this._mode);
     if (position !== null) {
       this._filmDetailsComponent.setScrollPosition(position);
     }
