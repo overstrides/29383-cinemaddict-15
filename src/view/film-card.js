@@ -1,10 +1,11 @@
 import AbstractView from './abstract.js';
-import { truncateDescription, humanizeDate, checkIfActive } from '../utils/film.js';
+import { getFilmDuration, truncateDescription, humanizeDate, checkIfActive } from '../utils/film.js';
 import { FILM_CARD_CONTROLS_ACTIVE_CLASS, SHORT_DESCRIPTION_LENGTH } from '../const.js';
 
 const createFilmCardTemplate = (filmCard = {}) => {
   const { title, totalRating, poster, release, runtime, genres, description, isInWatchlist, isWatched, isInFavorite, commentsId } = filmCard;
 
+  const filmRuntime = getFilmDuration(runtime);
   const releaseYear = humanizeDate(release.date, 'YYYY');
   const truncatedDescription = truncateDescription(description, SHORT_DESCRIPTION_LENGTH);
 
@@ -13,7 +14,7 @@ const createFilmCardTemplate = (filmCard = {}) => {
     <p class="film-card__rating">${totalRating}</p>
     <p class="film-card__info">
       <span class="film-card__year">${releaseYear}</span>
-      <span class="film-card__duration">${runtime}</span>
+      <span class="film-card__duration">${filmRuntime}</span>
       <span class="film-card__genre">${genres[0]}</span>
     </p>
     <img src=${poster} alt="" class="film-card__poster">

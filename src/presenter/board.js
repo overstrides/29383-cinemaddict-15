@@ -40,9 +40,6 @@ export default class Board {
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
     this._updateMostCommentedComponent = this._updateMostCommentedComponent.bind(this);
     this._updateFilteredFilmList = this._updateFilteredFilmList.bind(this);
-
-    this._filmsModel.addObserver(this._handleModelEvent);
-    this._filterModel.addObserver(this._handleModelEvent);
   }
 
   init() {
@@ -56,7 +53,20 @@ export default class Board {
     render(this._siteMainElement, this._filmsComponent);
     render(this._filmsComponent, this._filmsListComponent);
 
+    this._filmsModel.addObserver(this._handleModelEvent);
+    this._filterModel.addObserver(this._handleModelEvent);
+
     this._renderBoard();
+  }
+
+  destroy() {
+    this._clearFilmList({resetRenderedCardCount: true, resetSortType: true});
+
+    remove(this._filmsComponent);
+    remove(this._filmsListContainerComponent);
+
+    this._filmsModel.removeObserver(this._handleModelEvent);
+    this._filterModel.removeObserver(this._handleModelEvent);
   }
 
   _getFilms() {

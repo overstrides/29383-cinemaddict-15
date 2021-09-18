@@ -2,11 +2,42 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { getRandomInt } from './common.js';
 
+const getUserRating = (filmsCards) => {
+  let userTitle = '';
+  let userFilmsWatched = 0;
+
+  filmsCards.forEach((filmCard) => {
+    if (filmCard.isWatched) {
+      userFilmsWatched += 1;
+    }
+  });
+
+  if (userFilmsWatched > 0 && userFilmsWatched <= 10) {
+    userTitle = 'Novice';
+  } else if (userFilmsWatched > 10 && userFilmsWatched < 20) {
+    userTitle = 'Fan';
+  } else if (userFilmsWatched > 20) {
+    userTitle = 'Movie Buff';
+  } else {
+    userTitle = '';
+  }
+
+  return userTitle;
+};
+
 const humanizeDate = (date, format) => dayjs(date).format(format);
 
 const humanizeCommentDate = (date) => {
   dayjs.extend(relativeTime);
   return dayjs(date).fromNow();
+};
+
+const getFilmDuration = (minutes) => {
+  const durationInHours = Math.trunc(minutes / 60) > 0 ? `${Math.trunc(minutes / 60)}h` : '';
+  const durationInMinutes = minutes && minutes % 60 !== 0 ? `${minutes % 60}m` : '';
+  const durationSeparator = durationInHours && durationInMinutes ? ' ' : '';
+  const filmDuration = durationInHours || durationInMinutes ? durationInHours + durationSeparator + durationInMinutes : '';
+  return filmDuration;
 };
 
 const truncateDescription = (description, length) => {
@@ -72,4 +103,4 @@ const getDate = () => {
   return dayjs(date).fromNow();
 };
 
-export { humanizeDate, humanizeCommentDate, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive, getFilmDetailsData, sortByDate, sortByRating, getDate };
+export { getUserRating, humanizeDate, humanizeCommentDate, getFilmDuration, getRandomText, truncateDescription, getRandomDate, getRandomEmotion, getRandomAuthor, checkIfActive, getFilmDetailsData, sortByDate, sortByRating, getDate };

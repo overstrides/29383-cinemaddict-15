@@ -1,17 +1,16 @@
 import SmartView from './smart.js';
 import { nanoid } from 'nanoid';
 import he from 'he';
-import { checkIfActive, getRandomAuthor, getDate } from '../utils/film.js';
+import { getFilmDuration, checkIfActive, getRandomAuthor, getDate } from '../utils/film.js';
 import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS, COMMENTS_AUTHORS } from '../const.js';
 
 const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
 
   const { title, alternativeTitle, totalRating, poster, ageRating, directors, writers, actors, release, runtime, genres, description, isInWatchlist, isWatched, isInFavorite, commentEmotion, commentText } = filmDetailsCard;
 
+  const filmRuntime = getFilmDuration(runtime);
   const commentImage = commentEmotion ? `<img src=${commentEmotion} alt=${commentEmotion} width="70" height="70">` : '';
-
   const commentMessage = commentText ? commentText : '';
-
   let filmGenresList = '';
   genres.slice().forEach((item) => {
     filmGenresList += `<span class="film-details__genre">${item}</span>`;
@@ -79,7 +78,7 @@ const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Runtime</td>
-                <td class="film-details__cell">${runtime}</td>
+                <td class="film-details__cell">${filmRuntime}</td>
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Country</td>
