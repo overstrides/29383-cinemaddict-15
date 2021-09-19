@@ -1,5 +1,5 @@
 import MenuView from '../view/menu.js';
-import { render, replace, remove } from '../utils/render.js';
+import { RenderPosition, render, replace, remove } from '../utils/render.js';
 import { filter } from '../utils/filter.js';
 import { FilterType, UpdateType } from '../const.js';
 
@@ -26,7 +26,7 @@ export default class Filter {
     this._filterComponent.setFilterTypeChangeHandler(this._handleFilterTypeChange);
 
     if (prevFilterComponent === null) {
-      render(this._filterContainer, this._filterComponent);
+      render(this._filterContainer, this._filterComponent, RenderPosition.AFTERBEGIN);
       return;
     }
 

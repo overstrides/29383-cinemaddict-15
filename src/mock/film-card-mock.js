@@ -95,14 +95,6 @@ const generateFilmCardData = () => {
   return filmCardData[filmCardIndex];
 };
 
-const getFilmDuration = (minutes) => {
-  const durationInHours = Math.trunc(minutes / 60) > 0 ? `${Math.trunc(minutes / 60)}h` : '';
-  const durationInMinutes = minutes && minutes % 60 !== 0 ? `${minutes % 60}m` : '';
-  const durationSeparator = durationInHours && durationInMinutes ? ' ' : '';
-  const filmDuration = durationInHours || durationInMinutes ? durationInHours + durationSeparator + durationInMinutes : '';
-  return filmDuration;
-};
-
 export const generateFilmCard = (commentsId) => {
   const filmCardData = generateFilmCardData();
   const isWatchedFilm = Boolean(getRandomInt(0, 1));
@@ -121,7 +113,7 @@ export const generateFilmCard = (commentsId) => {
       date: humanizeDate(filmCardData.releaseDate, 'D MMMM YYYY'),
       country: filmCardData.releaseCountry,
     },
-    runtime: getFilmDuration(filmCardData.runtime),
+    runtime: filmCardData.runtime,
     genres: filmCardData.genres,
     description: getRandomText(TEXT_SOURCE, MIN_STRINGS_DESCRIPTION, MAX_STRINGS_DESCRIPTION),
     isInWatchlist: Boolean(getRandomInt(0, 1)),

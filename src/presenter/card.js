@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { UserAction, UpdateType, FilterType } from '../const.js';
 import { render, replace, remove } from '../utils/render.js';
 import { getFilmDetailsData } from '../utils/film.js';
@@ -160,6 +161,7 @@ export default class Card {
         this._filmCard,
         {
           isWatched: !this._filmCard.isWatched,
+          watchingDate: this._filmCard.isWatched === false ? dayjs().toDate() : '',
         },
       ),
       null,
