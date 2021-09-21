@@ -9,7 +9,7 @@ const NoFilmCardsTextType = {
 };
 
 const createNoFilmCardsTemplate = (filterType) => {
-  const noFilmCardsTextValue = NoFilmCardsTextType[filterType];
+  const noFilmCardsTextValue = filterType === '' ? 'Loading...' : NoFilmCardsTextType[filterType];
 
   return (
     `<h2 class="films-list__title">

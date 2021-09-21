@@ -91,6 +91,31 @@ export default class Card {
     }
   }
 
+  setActionAddingComment() {
+    this._filmDetailsComponent.updateData({
+      isDisabled: true,
+    });
+    this._filmDetailsComponent.setAddingCommentHandler();
+  }
+
+  setActionDeletingComment() {
+    this._filmDetailsComponent.setDetetingCommentHandler();
+  }
+
+  setCancelActionAddingComment() {
+    this._filmDetailsComponent.setAbortingAddingComment();
+  }
+
+  setCancelActionDeletingComment() {
+    this._filmDetailsComponent.setAbortingDeletingComment();
+  }
+
+  setFilmDetailsScrollPosition(scrollPosition) {
+    if (this._mode === 'EDITING') {
+      this._filmDetailsComponent.setScrollPosition(scrollPosition);
+    }
+  }
+
   _clickOpenFilmDetails() {
     this._openFilmDetails();
     document.addEventListener('keydown', this._escKeyDownHandler);
@@ -143,6 +168,7 @@ export default class Card {
       null,
       this._mode,
       FilterType.WATCHLIST,
+      position,
     );
     if (position !== null) {
       this._filmDetailsComponent.setScrollPosition(position);
@@ -167,6 +193,7 @@ export default class Card {
       null,
       this._mode,
       FilterType.HISTORY,
+      position,
     );
     if (position !== null) {
       this._filmDetailsComponent.setScrollPosition(position);
@@ -190,6 +217,7 @@ export default class Card {
       null,
       this._mode,
       FilterType.FAVORITES,
+      position,
     );
     if (position !== null) {
       this._filmDetailsComponent.setScrollPosition(position);
@@ -200,7 +228,7 @@ export default class Card {
     if (this._mode === Mode.EDITING) {
       this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
     }
-    this._changeData(UserAction.ADD_COMMENT, UpdateType.MINOR, film, comment, this._mode);
+    this._changeData(UserAction.ADD_COMMENT, UpdateType.MINOR, film, comment, this._mode, FilterType.ALL, position);
     if (position !== null) {
       this._filmDetailsComponent.setScrollPosition(position);
     }
@@ -210,7 +238,7 @@ export default class Card {
     if (this._mode === Mode.EDITING) {
       this._filmCard = this._filmDetailsComponent.getFilmDetailsData();
     }
-    this._changeData(UserAction.DELETE_COMMENT, UpdateType.MINOR, film, comment, this._mode);
+    this._changeData(UserAction.DELETE_COMMENT, UpdateType.MINOR, film, comment, this._mode, FilterType.ALL, position);
     if (position !== null) {
       this._filmDetailsComponent.setScrollPosition(position);
     }

@@ -1,12 +1,11 @@
 import SmartView from './smart.js';
-import { nanoid } from 'nanoid';
 import he from 'he';
-import { getFilmDuration, checkIfActive, getRandomAuthor, getDate } from '../utils/film.js';
-import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS, COMMENTS_AUTHORS } from '../const.js';
+import { humanizeDate, getFilmDuration, checkIfActive } from '../utils/film.js';
+import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS } from '../const.js';
 
 const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
 
-  const { title, alternativeTitle, totalRating, poster, ageRating, directors, writers, actors, release, runtime, genres, description, isInWatchlist, isWatched, isInFavorite, commentEmotion, commentText } = filmDetailsCard;
+  const { title, alternativeTitle, totalRating, poster, ageRating, directors, writers, actors, release, runtime, genres, description, isInWatchlist, isWatched, isInFavorite, commentEmotion, commentText, isDisabled } = filmDetailsCard;
 
   const filmRuntime = getFilmDuration(runtime);
   const commentImage = commentEmotion ? `<img src=${commentEmotion} alt=${commentEmotion} width="70" height="70">` : '';
@@ -16,12 +15,13 @@ const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
     filmGenresList += `<span class="film-details__genre">${item}</span>`;
   });
   const filmGenresTitle = genres.length > 1 ? 'Genres' : 'Genre';
+  const releaseDate = humanizeDate(release.date, 'D MMMM YYYY');
 
   let filmCommentsList = '';
   filmComments.slice().forEach((item) => {
     filmCommentsList += `<li class="film-details__comment" id=${item.id}>
       <span class="film-details__comment-emoji">
-        <img src=${item.emotion} width="55" height="55" alt="emoji-smile">
+        <img src=./images/emoji/${item.emotion}.png width="55" height="55" alt="emoji-smile">
       </span>
       <div>
         <p class="film-details__comment-text">${item.text}</p>
@@ -74,7 +74,7 @@ const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Release Date</td>
-                <td class="film-details__cell">${release.date}</td>
+                <td class="film-details__cell">${releaseDate}</td>
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Runtime</td>
@@ -115,26 +115,26 @@ const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
             <div class="film-details__add-emoji-label">${commentImage}</div>
 
             <label class="film-details__comment-label">
-              <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${he.encode(commentMessage)}</textarea>
+              <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment" ${isDisabled ? 'disabled' : ''}>${he.encode(commentMessage)}</textarea>
             </label>
 
             <div class="film-details__emoji-list">
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile">
+              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile" ${isDisabled ? 'disabled' : ''}>
               <label class="film-details__emoji-label" for="emoji-smile">
                 <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
               </label>
 
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping">
+              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping" ${isDisabled ? 'disabled' : ''}>
               <label class="film-details__emoji-label" for="emoji-sleeping">
                 <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
               </label>
 
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke">
+              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke" ${isDisabled ? 'disabled' : ''}>
               <label class="film-details__emoji-label" for="emoji-puke">
                 <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
               </label>
 
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry">
+              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry" ${isDisabled ? 'disabled' : ''}>
               <label class="film-details__emoji-label" for="emoji-angry">
                 <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
               </label>
@@ -201,13 +201,10 @@ export default class FilmDetails extends SmartView {
 
       if (this._commentText !== '' && this._commentEmotion !== '') {
         this._newFilmComment = {
-          id: nanoid(),
-          emotion: this._commentEmotion,
-          date: getDate(),
-          author: getRandomAuthor(COMMENTS_AUTHORS),
+          emotion: this._emojiName,
           text: this._commentText,
         };
-        this._filmDetails.commentsId.push(this._newFilmComment.id);
+
         this._callback.addNewComment(this._scrollPosition, FilmDetails.parseDataToFilmDetails(this._filmDetails), this._newFilmComment);
       }
     } else if (evt.key === 'Enter') {
@@ -222,23 +219,16 @@ export default class FilmDetails extends SmartView {
     }
 
     evt.preventDefault();
+    this._deleteComment = evt.target.closest('.film-details__comment');
+    this._idDeleteComment = this._deleteComment.id;
 
-    const comment = evt.target.closest('.film-details__comment');
-    const id = comment.id;
-    comment.remove();
-
-    const index = this._filmDetails.commentsId.findIndex((commentId) => commentId.toString() === id.toString());
+    const index = this._filmDetails.commentsId.findIndex((commentId) => commentId.toString() === this._idDeleteComment.toString());
 
     if (index === -1) {
       throw new Error('Can\'t delete unexisting commentsId');
     }
 
-    this._filmDetails.commentsId = [
-      ...this._filmDetails.commentsId.slice(0, index),
-      ...this._filmDetails.commentsId.slice(index + 1),
-    ];
-
-    this._callback.deleteComment(this._scrollPosition, FilmDetails.parseDataToFilmDetails(this._filmDetails), id);
+    this._callback.deleteComment(this._scrollPosition, FilmDetails.parseDataToFilmDetails(this._filmDetails), this._idDeleteComment);
   }
 
   setCloseFilmDetails(callback) {
@@ -278,6 +268,46 @@ export default class FilmDetails extends SmartView {
     });
   }
 
+  setDetetingCommentHandler() {
+    let deleteButtonElement = null;
+
+    if (this._deleteComment) {
+      deleteButtonElement = this._deleteComment.querySelector('.film-details__comment-delete');
+    }
+
+    if (deleteButtonElement) {
+      deleteButtonElement.textContent = 'Deleting';
+      deleteButtonElement.disabled = true;
+    }
+  }
+
+  setAddingCommentHandler() {
+    const addingCommentElement = this.getElement().querySelector('.film-details__new-comment');
+    addingCommentElement.classList.add('film-details__new-comment--disabled');
+  }
+
+  setAbortingDeletingComment() {
+    const deleteButtonElement = this._deleteComment.querySelector('.film-details__comment-delete');
+
+    if (deleteButtonElement) {
+      this._deleteComment.classList.add('shake');
+      deleteButtonElement.textContent = 'Delete';
+      deleteButtonElement.disabled = false;
+    }
+  }
+
+  setAbortingAddingComment() {
+    const addingCommentElement = this.getElement().querySelector('.film-details__new-comment');
+    const textCommentElement = this.getElement().querySelector('.film-details__comment-input');
+    textCommentElement.disabled = false;
+    addingCommentElement.classList.add('shake');
+    addingCommentElement.classList.remove('film-details__new-comment--disabled');
+    this.updateData({
+      commentEmotion: this._commentEmotion,
+      commentText: this._commentText,
+    }, true);
+  }
+
   _emotionInputHandler(evt) {
     evt.preventDefault();
 
@@ -285,16 +315,19 @@ export default class FilmDetails extends SmartView {
       return;
     }
 
-    const emojiLabel = evt.target.parentElement.htmlFor;
-    const emojiInputId = `#${emojiLabel}`;
-    const emojiInputElement = this.getElement().querySelector(emojiInputId);
-    const emojiName = emojiInputElement.value;
+    const addCommentFormElement = this.getElement().querySelector('.film-details__new-comment');
 
-    this._commentEmotion = `./images/emoji/${emojiName}.png`;
+    if (!addCommentFormElement.classList.contains('film-details__new-comment--disabled')) {
+      const emojiLabel = evt.target.parentElement.htmlFor;
+      const emojiInputId = `#${emojiLabel}`;
+      const emojiInputElement = this.getElement().querySelector(emojiInputId);
+      this._emojiName = emojiInputElement.value;
+      this._commentEmotion = `./images/emoji/${this._emojiName}.png`;
 
-    this.updateData({
-      commentEmotion: this._commentEmotion,
-    });
+      this.updateData({
+        commentEmotion: this._commentEmotion,
+      });
+    }
 
     this.setScrollPosition(this._scrollPosition);
   }
