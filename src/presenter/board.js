@@ -12,10 +12,11 @@ import NoFilmCardsView from '../view/no-film-cards.js';
 import CardPresenter from './card.js';
 
 export default class Board {
-  constructor(boardContainer, filmsModel, filterModel) {
+  constructor(boardContainer, filmsModel, filterModel, api) {
     this._boardContainer = boardContainer;
     this._filmsModel = filmsModel;
     this._filterModel = filterModel;
+    this._api = api;
     this._siteMainElement = boardContainer.querySelector('.main');
     this._renderedFilmsCardCount = FILMS_STEP_NUMBER;
     this._filmCardsPresenter = new Map();
@@ -30,6 +31,7 @@ export default class Board {
     this._noFilmCardsComponent = null;
     this._filmsListContainerComponent = null;
     this._mode = 'DEFAULT';
+    this._isLoading = true;
 
     this._filmsComponent = new FilmsView();
 
@@ -92,18 +94,79 @@ export default class Board {
     return this._filmsModel.getComments();
   }
 
-  _handleViewAction(actionType, updateType, updateFilmCard, updateComment, mode, filterType = FilterType.ALL) {
+  _handleViewAction(actionType, updateType, updateFilmCard, updateComment, mode, filterType = FilterType.ALL, scrollPosition = 0) {
     this._mode = mode;
     this._filterFilmChange = filterType === 'watched' ? 'history' : filterType;
     switch (actionType) {
       case UserAction.UPDATE_FILM_CARD:
-        this._filmsModel.updateFilmCard(updateType, updateFilmCard, null, filterType);
+        this._api.updateFilmCard(updateFilmCard).then((response) => {
+          this._filmsModel.updateFilmCard(updateType, response, null, filterType);
+          if (this._mode === 'EDITING') {
+            this._filmCardsPresenter.get(updateFilmCard.id).setFilmDetailsScrollPosition(scrollPosition);
+            if(this._filmCardsTopRatedPresenter.has(updateFilmCard.id)) {
+              this._filmCardsTopRatedPresenter.get(updateFilmCard.id).setFilmDetailsScrollPosition(scrollPosition);
+            }
+            if(this._filmCardsMostCommentedPresenter.has(updateFilmCard.id)) {
+              this._filmCardsMostCommentedPresenter.get(updateFilmCard.id).setFilmDetailsScrollPosition(scrollPosition);
+            }
+          }
+        });
         break;
       case UserAction.ADD_COMMENT:
-        this._filmsModel.addComment(updateType, updateFilmCard, updateComment);
+        this._filmCardsPresenter.get(updateFilmCard.id).setActionAddingComment();
+        if(this._filmCardsTopRatedPresenter.has(updateFilmCard.id)) {
+          this._filmCardsTopRatedPresenter.get(updateFilmCard.id).setActionAddingComment();
+        }
+        if(this._filmCardsMostCommentedPresenter.has(updateFilmCard.id)) {
+          this._filmCardsMostCommentedPresenter.get(updateFilmCard.id).setActionAddingComment();
+        }
+        this._api.addComment(updateFilmCard, updateComment).then((response) => {
+          this._filmsModel.addComment(updateType, updateFilmCard, response);
+          this._filmCardsPresenter.get(updateFilmCard.id).setFilmDetailsScrollPosition(scrollPosition);
+          if(this._filmCardsTopRatedPresenter.has(updateFilmCard.id)) {
+            this._filmCardsTopRatedPresenter.get(updateFilmCard.id).setFilmDetailsScrollPosition(scrollPosition);
+          }
+          if(this._filmCardsMostCommentedPresenter.has(updateFilmCard.id)) {
+            this._filmCardsMostCommentedPresenter.get(updateFilmCard.id).setFilmDetailsScrollPosition(scrollPosition);
+          }
+        })
+          .catch(() => {
+            this._filmCardsPresenter.get(updateFilmCard.id).setCancelActionAddingComment();
+            if(this._filmCardsTopRatedPresenter.has(updateFilmCard.id)) {
+              this._filmCardsTopRatedPresenter.get(updateFilmCard.id).setCancelActionAddingComment();
+            }
+            if(this._filmCardsMostCommentedPresenter.has(updateFilmCard.id)) {
+              this._filmCardsMostCommentedPresenter.get(updateFilmCard.id).setCancelActionAddingComment();
+            }
+          });
         break;
       case UserAction.DELETE_COMMENT:
-        this._filmsModel.deleteComment(updateType, updateFilmCard, updateComment);
+        this._filmCardsPresenter.get(updateFilmCard.id).setActionDeletingComment();
+        if(this._filmCardsTopRatedPresenter.has(updateFilmCard.id)) {
+          this._filmCardsTopRatedPresenter.get(updateFilmCard.id).setActionDeletingComment();
+        }
+        if(this._filmCardsMostCommentedPresenter.has(updateFilmCard.id)) {
+          this._filmCardsMostCommentedPresenter.get(updateFilmCard.id).setActionDeletingComment();
+        }
+        this._api.deleteComment(updateComment).then(() => {
+          this._filmsModel.deleteComment(updateType, updateFilmCard, updateComment);
+          this._filmCardsPresenter.get(updateFilmCard.id).setFilmDetailsScrollPosition(scrollPosition);
+          if(this._filmCardsTopRatedPresenter.has(updateFilmCard.id)) {
+            this._filmCardsTopRatedPresenter.get(updateFilmCard.id).setFilmDetailsScrollPosition(scrollPosition);
+          }
+          if(this._filmCardsMostCommentedPresenter.has(updateFilmCard.id)) {
+            this._filmCardsMostCommentedPresenter.get(updateFilmCard.id).setFilmDetailsScrollPosition(scrollPosition);
+          }
+        })
+          .catch(() => {
+            this._filmCardsPresenter.get(updateFilmCard.id).setCancelActionDeletingComment();
+            if(this._filmCardsTopRatedPresenter.has(updateFilmCard.id)) {
+              this._filmCardsTopRatedPresenter.get(updateFilmCard.id).setCancelActionDeletingComment();
+            }
+            if(this._filmCardsMostCommentedPresenter.has(updateFilmCard.id)) {
+              this._filmCardsMostCommentedPresenter.get(updateFilmCard.id).setCancelActionDeletingComment();
+            }
+          });
         break;
     }
   }
@@ -142,10 +205,15 @@ export default class Board {
           this._filmCardsMostCommentedPresenter.get(data.id).init(this._filmsMostCommentedContainerElement, data, comments);
         }
         break;
-      case UpdateType.MAJOR: {
+      case UpdateType.MAJOR:
         this._clearFilmList({resetRenderedCardCount: true, resetSortType: true});
         this._renderCardList();
-      }
+        break;
+      case UpdateType.INIT:
+        this._isLoading = false;
+        remove(this._noFilmCardsComponent);
+        this._renderBoard();
+        break;
     }
   }
 
@@ -178,8 +246,8 @@ export default class Board {
     this._renderCardList();
   }
 
-  _renderNoFilmCards() {
-    this._noFilmCardsComponent = new NoFilmCardsView(this._filterType);
+  _renderNoFilmCards(text = '') {
+    this._noFilmCardsComponent = new NoFilmCardsView(text);
     render(this._filmsListComponent, this._noFilmCardsComponent);
   }
 
@@ -219,7 +287,7 @@ export default class Board {
     const filmCardCount = this._getFilms().length;
 
     if (filmCardCount === 0) {
-      this._renderNoFilmCards();
+      this._renderNoFilmCards(this._filterType);
       return;
     }
     this._renderSort();
@@ -239,7 +307,7 @@ export default class Board {
     const filmCardCount = this._getFilms().length;
 
     if (filmCardCount === 0) {
-      this._renderNoFilmCards();
+      this._renderNoFilmCards(this._filterType);
       return;
     }
 
@@ -350,11 +418,16 @@ export default class Board {
   }
 
   _renderBoard() {
+    if (this._isLoading) {
+      this._renderNoFilmCards();
+      return;
+    }
+
     const filmCards = this._getFilms();
     const filmCardCount = filmCards.length;
 
     if (filmCardCount === 0) {
-      this._renderNoFilmCards();
+      this._renderNoFilmCards(this._filterType);
       return;
     }
 
@@ -363,6 +436,7 @@ export default class Board {
     this._renderSort();
 
     this._renderFilmCards(filmCards.slice(0, Math.min(filmCardCount, this._renderedFilmsCardCount)));
+    this._filmCardsOnPage = Math.min(filmCardCount, this._renderedFilmsCardCount);
 
     if (filmCardCount > this._renderedFilmsCardCount) {
       this._renderShowMoreButton();

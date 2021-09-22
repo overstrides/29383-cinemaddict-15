@@ -1,4 +1,4 @@
-import { FILMS_NUMBER, UpdateType, FilterType, NavigationItem, StatisticsRange } from './const.js';
+import { UpdateType, FilterType, NavigationItem, StatisticsRange, AUTHORIZATION, END_POINT } from './const.js';
 import { render, remove } from './utils/render.js';
 import { getWatchedFilms, getWatchedFilmsByRange } from './utils/statistics.js';
 import ProfileView from './view/profile.js';
@@ -7,13 +7,11 @@ import StatsView from './view/stats.js';
 import StatsContentView from './view/stats-content.js';
 import SiteStatisticsView from './view/site-statistics.js';
 import BoardPresenter from './presenter/board.js';
-import { generateFilmCard } from './mock/film-card-mock.js';
-import { generateFilmComments } from './mock/film-comments-mock.js';
 import FilmsModel from './model/films.js';
 import FilterPresenter from './presenter/filter.js';
 import FilterModel from './model/filter.js';
+import Api from './api.js';
 
-const filmsComments = [];
 let isFilmsDisplayed = true;
 let isStatsDisplayed = false;
 let statsContentComponent = null;
@@ -21,21 +19,8 @@ let currentRange = StatisticsRange.ALL;
 let totalFilmsWatched = [];
 let filmCardsForStats = [];
 
-const filmsCards = new Array(FILMS_NUMBER).fill().map(() => {
-  const filmCommentsData = generateFilmComments();
-  const filmComments = filmCommentsData[0];
-  const filmCommentsId = filmCommentsData[1];
-
-  filmComments.forEach((item) => {
-    filmsComments.push(item);
-  });
-
-  return generateFilmCard(filmCommentsId);
-});
-
+const api = new Api(END_POINT, AUTHORIZATION);
 const filmsModel = new FilmsModel();
-filmsModel.setFilms(filmsCards);
-filmsModel.setComments(filmsComments);
 
 const filterModel = new FilterModel();
 
@@ -44,12 +29,9 @@ const siteHeaderElement = document.querySelector('.header');
 const siteMainElement = document.querySelector('.main');
 const siteFooterStatisticsElement = document.querySelector('.footer__statistics');
 
-render(siteHeaderElement, new ProfileView(filmsCards));
-render(siteFooterStatisticsElement, new SiteStatisticsView(filmsCards));
-
 const navigationComponent = new NavigationView();
 const statsComponent = new StatsView();
-const boardPresenter = new BoardPresenter(bodyElement, filmsModel, filterModel);
+const boardPresenter = new BoardPresenter(bodyElement, filmsModel, filterModel, api);
 const filterPresenter = new FilterPresenter(navigationComponent, filterModel, filmsModel);
 
 const renderStatsContent = () => {
@@ -104,10 +86,37 @@ const handleNavigationClick = (navigationItem) => {
   }
 };
 
-navigationComponent.setNavigationHandler(handleNavigationClick);
-
 render(siteMainElement, navigationComponent);
 render(navigationComponent, statsComponent);
 
 filterPresenter.init();
 boardPresenter.init();
+
+api.getFilms()
+  .then((filmsCards) => {
+    const commentsRequests = [];
+    const filmComments = [];
+
+    filmsCards.map((filmsCard) => {
+      commentsRequests.push(api.getComments(filmsCard.id));
+    });
+
+    Promise.all(commentsRequests)
+      .then((comments) => {
+        comments.forEach((commentList) => {
+          commentList.forEach((commentItem) => {
+            filmComments.push(commentItem);
+          });
+        });
+        filmsModel.setFilms(UpdateType.INIT, filmsCards, filmComments);
+        render(siteHeaderElement, new ProfileView(filmsCards));
+        render(siteFooterStatisticsElement, new SiteStatisticsView(filmsCards));
+        navigationComponent.setNavigationHandler(handleNavigationClick);
+      });
+  })
+  .catch(() => {
+    filmsModel.setFilms(UpdateType.INIT, [], []);
+    render(siteHeaderElement, new ProfileView([]));
+    render(siteFooterStatisticsElement, new SiteStatisticsView([]));
+    navigationComponent.setNavigationHandler(handleNavigationClick);
+  });
