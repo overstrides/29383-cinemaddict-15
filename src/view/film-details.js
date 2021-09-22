@@ -1,6 +1,6 @@
 import SmartView from './smart.js';
 import he from 'he';
-import { humanizeDate, getFilmDuration, checkIfActive } from '../utils/film.js';
+import { humanizeDate, humanizeCommentDate, getFilmDuration, checkIfActive } from '../utils/film.js';
 import { FILM_DETAILS_CONTROLS_ACTIVE_CLASS } from '../const.js';
 
 const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
@@ -19,6 +19,8 @@ const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
 
   let filmCommentsList = '';
   filmComments.slice().forEach((item) => {
+    const commentDate = humanizeCommentDate(item.date);
+
     filmCommentsList += `<li class="film-details__comment" id=${item.id}>
       <span class="film-details__comment-emoji">
         <img src=./images/emoji/${item.emotion}.png width="55" height="55" alt="emoji-smile">
@@ -27,7 +29,7 @@ const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
         <p class="film-details__comment-text">${item.text}</p>
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${item.author}</span>
-          <span class="film-details__comment-day">${item.date}</span>
+          <span class="film-details__comment-day">${commentDate}</span>
           <button class="film-details__comment-delete">Delete</button>
         </p>
       </div>
