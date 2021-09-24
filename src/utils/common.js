@@ -10,4 +10,6 @@ const getRandomInt = (a = 1, b = 0) => {
   return Math.floor(lower + Math.random() * (upper - lower + 1));
 };
 
-export { getRandomFloat, getRandomInt };
+const isOnline = () => window.navigator.onLine;
+
+export { getRandomFloat, getRandomInt, isOnline };

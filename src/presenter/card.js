@@ -105,9 +105,6 @@ export default class Card {
   }
 
   setCancelActionAddingComment() {
-    this._filmDetailsComponent.updateData({
-      isDisabled: false,
-    });
     this._filmDetailsComponent.setAbortingAddingComment();
   }
 

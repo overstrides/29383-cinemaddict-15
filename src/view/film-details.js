@@ -289,7 +289,11 @@ export default class FilmDetails extends SmartView {
   }
 
   setAbortingDeletingComment() {
-    const deleteButtonElement = this._deleteComment.querySelector('.film-details__comment-delete');
+    let deleteButtonElement = null;
+
+    if (this._deleteComment) {
+      deleteButtonElement = this._deleteComment.querySelector('.film-details__comment-delete');
+    }
 
     if (deleteButtonElement) {
       this._deleteComment.classList.add('shake');
@@ -302,6 +306,7 @@ export default class FilmDetails extends SmartView {
     this.updateData({
       commentEmotion: this._commentEmotion,
       commentText: this._commentText,
+      isDisabled: false,
     });
     const addingCommentElement = this.getElement().querySelector('.film-details__new-comment');
     const textCommentElement = this.getElement().querySelector('.film-details__comment-input');

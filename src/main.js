@@ -1,6 +1,8 @@
-import { UpdateType, FilterType, NavigationItem, StatisticsRange, AUTHORIZATION, END_POINT } from './const.js';
+import { UpdateType, FilterType, NavigationItem, StatisticsRange, AUTHORIZATION, END_POINT, STORE_NAME } from './const.js';
+import { isOnline } from './utils/common.js';
 import { render, remove } from './utils/render.js';
 import { getWatchedFilms, getWatchedFilmsByRange } from './utils/statistics.js';
+import { toast } from './utils/toast.js';
 import NavigationView from './view/navigation.js';
 import StatsView from './view/stats.js';
 import StatsContentView from './view/stats-content.js';
@@ -9,7 +11,9 @@ import BoardPresenter from './presenter/board.js';
 import FilmsModel from './model/films.js';
 import FilterPresenter from './presenter/filter.js';
 import FilterModel from './model/filter.js';
-import Api from './api.js';
+import Api from './api/api.js';
+import Store from './api/store.js';
+import Provider from './api/provider.js';
 
 let isFilmsDisplayed = true;
 let isStatsDisplayed = false;
@@ -19,8 +23,9 @@ let totalFilmsWatched = [];
 let filmCardsForStats = [];
 
 const api = new Api(END_POINT, AUTHORIZATION);
+const store = new Store(STORE_NAME, window.localStorage);
+const apiWithProvider = new Provider(api, store);
 const filmsModel = new FilmsModel();
-
 const filterModel = new FilterModel();
 
 const bodyElement = document.querySelector('body');
@@ -29,7 +34,7 @@ const siteFooterStatisticsElement = document.querySelector('.footer__statistics'
 
 const navigationComponent = new NavigationView();
 const statsComponent = new StatsView();
-const boardPresenter = new BoardPresenter(bodyElement, filmsModel, filterModel, api);
+const boardPresenter = new BoardPresenter(bodyElement, filmsModel, filterModel, apiWithProvider);
 const filterPresenter = new FilterPresenter(navigationComponent, filterModel, filmsModel);
 
 const renderStatsContent = () => {
@@ -90,13 +95,17 @@ render(navigationComponent, statsComponent);
 filterPresenter.init();
 boardPresenter.init();
 
-api.getFilms()
+if (!isOnline()) {
+  toast('No network access');
+}
+
+apiWithProvider.getFilms()
   .then((filmsCards) => {
     const commentsRequests = [];
     const filmComments = [];
 
     filmsCards.map((filmsCard) => {
-      commentsRequests.push(api.getComments(filmsCard.id));
+      commentsRequests.push(apiWithProvider.getComments(filmsCard.id));
     });
 
     Promise.all(commentsRequests)
@@ -116,3 +125,17 @@ api.getFilms()
     render(siteFooterStatisticsElement, new SiteStatisticsView([]));
     navigationComponent.setNavigationHandler(handleNavigationClick);
   });
+
+window.addEventListener('load', () => {
+  navigator.serviceWorker.register('/sw.js');
+});
+
+window.addEventListener('online', () => {
+  document.title = document.title.replace(' [offline]', '');
+  apiWithProvider.sync();
+});
+
+window.addEventListener('offline', () => {
+  toast('No network access');
+  document.title += ' [offline]';
+});
