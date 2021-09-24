@@ -125,7 +125,7 @@ export default class StatsContent extends SmartView {
     this._filmCards = filmCards;
     this._filmRange = filmRange;
     this._chart = null;
-    this._handlerStats = this._handlerStats.bind(this);
+    this._clickStatsHandler = this._clickStatsHandler.bind(this);
     this._setStatsCharts();
   }
 
@@ -133,7 +133,7 @@ export default class StatsContent extends SmartView {
     return createStatsContentTemplate(this._filmCards, this._filmRange);
   }
 
-  _handlerStats(evt) {
+  _clickStatsHandler(evt) {
     if (evt.target.tagName !== 'INPUT') {
       return;
     }
@@ -153,6 +153,6 @@ export default class StatsContent extends SmartView {
 
   setStatsChangeHandler(callback) {
     this._callback.statsChange = callback;
-    this.getElement().addEventListener('click', this._handlerStats);
+    this.getElement().addEventListener('click', this._clickStatsHandler);
   }
 }

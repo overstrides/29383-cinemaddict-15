@@ -14,16 +14,16 @@ const getWatchedFilms = (cards) => {
 };
 
 const getGenresRating = (genres) => {
-  const resultReduce = genres.reduce((acc, cur) => {
-    if (!acc.hash[cur]) {
-      acc.hash[cur] = {[cur]: 1};
-      acc.map.set(acc.hash[cur], 1);
-      acc.result.push(acc.hash[cur]);
+  const resultReduce = genres.reduce((accumulator, currentValue) => {
+    if (!accumulator.hash[currentValue]) {
+      accumulator.hash[currentValue] = {[currentValue]: 1};
+      accumulator.map.set(accumulator.hash[currentValue], 1);
+      accumulator.result.push(accumulator.hash[currentValue]);
     } else {
-      acc.hash[cur][cur] += 1;
-      acc.map.set(acc.hash[cur], acc.hash[cur][cur]);
+      accumulator.hash[currentValue][currentValue] += 1;
+      accumulator.map.set(accumulator.hash[currentValue], accumulator.hash[currentValue][currentValue]);
     }
-    return acc;
+    return accumulator;
   }, {
     hash: {},
     map: new Map(),

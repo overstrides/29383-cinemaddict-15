@@ -9,8 +9,6 @@ const createNavigationTemplate = () => (
 export default class Navigation extends AbstractView {
   constructor() {
     super();
-    this._isShowFilmCards = false;
-    this._isShowStats = false;
     this._navigationHandler = this._navigationHandler.bind(this);
   }
 

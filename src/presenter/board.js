@@ -2,6 +2,7 @@ import { FILMS_STEP_NUMBER, FILMS_EXTRA_NUMBER, FILMS_TOP_RATED_TITLE, FILMS_MOS
 import { RenderPosition, render, remove } from '../utils/render.js';
 import { sortByDate, sortByRating } from '../utils/film.js';
 import { filter } from '../utils/filter.js';
+import ProfileView from '../view/profile.js';
 import SortView from '../view/sort.js';
 import FilmsView from '../view/films.js';
 import FilmsListView from '../view/films-list.js';
@@ -30,8 +31,15 @@ export default class Board {
     this._showMoreComponent = null;
     this._noFilmCardsComponent = null;
     this._filmsListContainerComponent = null;
+    this._profileComponent = null;
     this._mode = 'DEFAULT';
     this._isLoading = true;
+    // this._isOpenFilmCard = false;
+    // this._filmCardId = null;
+    // this._notCloseCards = new Set();
+    // this._amountOpenFilmCard = 0;
+    this._countOpenCards = 0;
+    this._countCloseCards = 0;
 
     this._filmsComponent = new FilmsView();
 
@@ -42,13 +50,18 @@ export default class Board {
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
     this._updateMostCommentedComponent = this._updateMostCommentedComponent.bind(this);
     this._updateFilteredFilmList = this._updateFilteredFilmList.bind(this);
+    this._openCard = this._openCard.bind(this);
+    this._closeCard = this._closeCard.bind(this);
+    // this._saveOpenedFilmCardId = this._saveOpenedFilmCardId.bind(this);
+
+
   }
 
   init() {
     const films = this._filmsModel.getFilms().slice();
     const filtredFilms = filter[this._filterType](films);
     this._filmCardsOnPage = Math.min(filtredFilms.length, FILMS_STEP_NUMBER);
-    this._isNotEmpty = Boolean(filtredFilms.length);
+    this._siteHeaderElement = document.querySelector('.header');
 
     this._filmsListComponent = new FilmsListView();
 
@@ -69,6 +82,14 @@ export default class Board {
 
     this._filmsModel.removeObserver(this._handleModelEvent);
     this._filterModel.removeObserver(this._handleModelEvent);
+  }
+
+  _openCard() {
+    this._countOpenCards += 1;
+  }
+
+  _closeCard() {
+    this._countCloseCards += 1;
   }
 
   _getFilms() {
@@ -191,6 +212,7 @@ export default class Board {
         if(this._filmCardsMostCommentedPresenter.has(data.id)) {
           this._filmCardsMostCommentedPresenter.get(data.id).init(this._filmsMostCommentedContainerElement, data, comments);
         }
+        this._renderProfile(this._getFilms());
         break;
       case UpdateType.MINOR:
         this._isCommentUpdated = true;
@@ -217,7 +239,20 @@ export default class Board {
     }
   }
 
+  _renderProfile(filmCards) {
+    if (this._profileComponent !== null) {
+      remove(this._profileComponent);
+    }
+
+    this._profileComponent = new ProfileView(filmCards);
+
+    render(this._siteHeaderElement, this._profileComponent);
+  }
+
   _updateFilteredFilmList() {
+    if (this._countOpenCards > this._countCloseCards) {
+      return;
+    }
     this._clearFilmList({resetRenderedCardCount: false, resetSortType: false});
     this._renderFilteredCardList();
   }
@@ -263,7 +298,8 @@ export default class Board {
 
   _renderFilmCard(filmCardsContainer, filmCard) {
     const comments = this._getComments();
-    const cardPresenter = new CardPresenter(this._boardContainer, comments, this._handleViewAction, this._handleModeChange, this._updateMostCommentedComponent, this._updateFilteredFilmList);
+
+    const cardPresenter = new CardPresenter(this._boardContainer, comments, this._handleViewAction, this._handleModeChange, this._updateMostCommentedComponent, this._updateFilteredFilmList, this._openCard, this._closeCard);
     cardPresenter.init(filmCardsContainer, filmCard);
 
     switch (filmCardsContainer) {
@@ -425,6 +461,8 @@ export default class Board {
 
     const filmCards = this._getFilms();
     const filmCardCount = filmCards.length;
+
+    this._renderProfile(filmCards);
 
     if (filmCardCount === 0) {
       this._renderNoFilmCards(this._filterType);

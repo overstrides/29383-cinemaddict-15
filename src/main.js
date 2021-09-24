@@ -1,7 +1,6 @@
 import { UpdateType, FilterType, NavigationItem, StatisticsRange, AUTHORIZATION, END_POINT } from './const.js';
 import { render, remove } from './utils/render.js';
 import { getWatchedFilms, getWatchedFilmsByRange } from './utils/statistics.js';
-import ProfileView from './view/profile.js';
 import NavigationView from './view/navigation.js';
 import StatsView from './view/stats.js';
 import StatsContentView from './view/stats-content.js';
@@ -25,7 +24,6 @@ const filmsModel = new FilmsModel();
 const filterModel = new FilterModel();
 
 const bodyElement = document.querySelector('body');
-const siteHeaderElement = document.querySelector('.header');
 const siteMainElement = document.querySelector('.main');
 const siteFooterStatisticsElement = document.querySelector('.footer__statistics');
 
@@ -109,14 +107,12 @@ api.getFilms()
           });
         });
         filmsModel.setFilms(UpdateType.INIT, filmsCards, filmComments);
-        render(siteHeaderElement, new ProfileView(filmsCards));
         render(siteFooterStatisticsElement, new SiteStatisticsView(filmsCards));
         navigationComponent.setNavigationHandler(handleNavigationClick);
       });
   })
   .catch(() => {
     filmsModel.setFilms(UpdateType.INIT, [], []);
-    render(siteHeaderElement, new ProfileView([]));
     render(siteFooterStatisticsElement, new SiteStatisticsView([]));
     navigationComponent.setNavigationHandler(handleNavigationClick);
   });

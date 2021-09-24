@@ -26,7 +26,7 @@ const createFilmDetailsTemplate = (filmDetailsCard, filmComments) => {
         <img src=./images/emoji/${item.emotion}.png width="55" height="55" alt="emoji-smile">
       </span>
       <div>
-        <p class="film-details__comment-text">${item.text}</p>
+        <p class="film-details__comment-text">${he.encode(item.text)}</p>
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${item.author}</span>
           <span class="film-details__comment-day">${commentDate}</span>
@@ -299,15 +299,15 @@ export default class FilmDetails extends SmartView {
   }
 
   setAbortingAddingComment() {
+    this.updateData({
+      commentEmotion: this._commentEmotion,
+      commentText: this._commentText,
+    });
     const addingCommentElement = this.getElement().querySelector('.film-details__new-comment');
     const textCommentElement = this.getElement().querySelector('.film-details__comment-input');
     textCommentElement.disabled = false;
     addingCommentElement.classList.add('shake');
     addingCommentElement.classList.remove('film-details__new-comment--disabled');
-    this.updateData({
-      commentEmotion: this._commentEmotion,
-      commentText: this._commentText,
-    }, true);
   }
 
   _emotionInputHandler(evt) {

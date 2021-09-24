@@ -12,13 +12,15 @@ const Mode = {
 };
 
 export default class Card {
-  constructor(filmDetailsContainer, filmsComments, changeData, changeMode, updateComments, updateFilteredFilmList) {
+  constructor(filmDetailsContainer, filmsComments, changeData, changeMode, updateComments, updateFilteredFilmList, openCard, closeCard) {
     this._filmDetailsContainer = filmDetailsContainer;
     this._filmsComments = filmsComments;
     this._changeData = changeData;
     this._changeMode = changeMode;
     this._updateComments = updateComments;
     this._updateFilteredFilmList = updateFilteredFilmList;
+    this._openCard = openCard;
+    this._closeCard = closeCard;
     this._filmCardComponent = null;
     this._filmDetailsComponent = null;
     this._mode = Mode.DEFAULT;
@@ -103,6 +105,9 @@ export default class Card {
   }
 
   setCancelActionAddingComment() {
+    this._filmDetailsComponent.updateData({
+      isDisabled: false,
+    });
     this._filmDetailsComponent.setAbortingAddingComment();
   }
 
@@ -110,7 +115,7 @@ export default class Card {
     this._filmDetailsComponent.setAbortingDeletingComment();
   }
 
-  setFilmDetailsScrollPosition(scrollPosition) {
+  setFilmDetailsScrollPosition(scrollPosition = 0) {
     if (this._mode === 'EDITING') {
       this._filmDetailsComponent.setScrollPosition(scrollPosition);
     }
@@ -127,6 +132,7 @@ export default class Card {
   }
 
   _openFilmDetails() {
+    this._openCard();
     this._filmDetailsContainer.appendChild(this._filmDetailsComponent.getElement());
     this._filmDetailsContainer.classList.add('hide-overflow');
     this._changeMode();
@@ -134,6 +140,7 @@ export default class Card {
   }
 
   _closeFilmDetails() {
+    this._closeCard();
     this._filmCard = this._filmDetailsComponent.getFilmDetails();
     this._filmDetailsComponent.reset(this._filmDetailsCard);
     this._filmDetailsContainer.removeChild(this._filmDetailsComponent.getElement());
